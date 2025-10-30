@@ -1,0 +1,281 @@
+{
+	"name": "docker",
+	"displayName": "Docker DX",
+	"description": "Edit smarter, ship faster with an enhanced Docker-development experience",
+	"version": "0.18.0",
+	"icon": "resources/logo-256x256.png",
+	"license": "Apache-2.0",
+	"engines": {
+		"vscode": "^1.92.0"
+	},
+	"publisher": "docker",
+	"categories": [
+		"Programming Languages",
+		"Linters",
+		"Debuggers"
+	],
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/docker/vscode-extension"
+	},
+	"activationEvents": [
+		"onDebugResolve:dockerfile",
+		"onDebugDynamicConfigurations:dockerfile",
+		"onLanguage:dockercompose",
+		"onLanguage:dockerfile"
+	],
+	"main": "./dist/extension.js",
+	"contributes": {
+		"commands": [
+			{
+				"title": "Build with Bake",
+				"command": "dockerLspClient.bake.build",
+				"enablement": "never"
+			},
+			{
+				"title": "Scan for CVEs with Docker Scout",
+				"command": "docker.scout.imageScan",
+				"enablement": "(view == dockerImages || view == vscode-containers.views.images) && viewItem == image"
+			}
+		],
+		"languages": [
+			{
+				"id": "dockerbake",
+				"filenames": [
+					"docker-bake.hcl",
+					"docker-bake.override.hcl"
+				],
+				"configuration": "./configs/dockerbake-language-configuration.json"
+			}
+		],
+		"grammars": [
+			{
+				"language": "dockerbake",
+				"scopeName": "source.hcl",
+				"path": "./syntaxes/hcl.tmGrammar.json"
+			}
+		],
+		"menus": {
+			"view/item/context": [
+				{
+					"command": "docker.scout.imageScan",
+					"when": "(view == dockerImages || view == vscode-containers.views.images) && viewItem == image",
+					"group": "images_group_dockerdx"
+				}
+			]
+		},
+		"breakpoints": [
+			{
+				"language": "dockerfile"
+			}
+		],
+		"debuggers": [
+			{
+				"type": "dockerfile",
+				"languages": [
+					"dockerfile"
+				],
+				"label": "Docker: Build",
+				"configurationAttributes": {
+					"launch": {
+						"required": [
+							"contextPath"
+						],
+						"properties": {
+							"dockerfile": {
+								"type": "string",
+								"description": "Relative path to the Dockerfile from the working directory or an absolute path to the Dockerfile. Defaults to Dockerfile.",
+								"markdownDescription": "Relative path to the Dockerfile from the working directory or an absolute path to the Dockerfile. Defaults to `Dockerfile`.",
+								"default": "Dockerfile"
+							},
+							"contextPath": {
+								"type": "string",
+								"description": "Path to the context. Defaults to the workspace folder.",
+								"default": "${workspaceFolder}"
+							},
+							"cwd": {
+								"type": "string",
+								"description": "Absolute path to the working directory to start the debugger from. Defaults to the workspace folder.",
+								"default": "${workspaceFolder}"
+							},
+							"target": {
+								"type": "string",
+								"description": "Target build stage to build."
+							},
+							"stopOnEntry": {
+								"type": "boolean",
+								"description": "Stop the docker build on the first instruction.",
+								"default": false
+							},
+							"builder": {
+								"type": "string",
+								"description": "Builder to use."
+							},
+							"args": {
+								"type": "array",
+								"description": "Arguments to pass to the build."
+							}
+						}
+					}
+				},
+				"initialConfigurations": [
+					{
+						"type": "dockerfile",
+						"request": "launch",
+						"name": "Docker: Build",
+						"dockerfile": "Dockerfile",
+						"contextPath": "${workspaceFolder}"
+					}
+				],
+				"configurationSnippets": [
+					{
+						"label": "Docker: Build",
+						"description": "A new configuration for debugging a user selected Dockerfile.",
+						"body": {
+							"type": "dockerfile",
+							"request": "launch",
+							"name": "Docker: Build",
+							"dockerfile": "${2:Dockerfile}",
+							"contextPath": "^\"\\${workspaceFolder}\""
+						}
+					}
+				]
+			}
+		],
+		"configuration": {
+			"title": "Docker DX",
+			"properties": {
+				"docker.extension.enableComposeLanguageServer": {
+					"type": "boolean",
+					"description": "Enable Compose editing features from the Docker DX extension. Note that changing this value requires a restart of Visual Studio Code to take effect.",
+					"markdownDescription": "Enable Compose editing features from the Docker DX extension. Note that changing this value requires a **restart** of Visual Studio Code to take effect.\n\nIf you have [Red Hat's YAML extension](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml), note that both Docker DX and Red Hat's YAML extension are handling Compose files. This creates duplicate completions, hovers, and syntax errors.\n\nYou can follow the steps [here](https://github.com/docker/vscode-extension/blob/main/FAQ.md) to update your `settings.json` to turn off Compose support in the YAML extension and streamline your experience.",
+					"default": true,
+					"scope": "application"
+				},
+				"docker.extension.dockerEngineAvailabilityPrompt": {
+					"type": "boolean",
+					"description": "Be notified when Docker Engine is not available.",
+					"default": true,
+					"scope": "application"
+				},
+				"docker.extension.editor.dockerfileBuildStageDecorationLines": {
+					"type": "boolean",
+					"description": "Render a divider line between each build stage of a Dockerfile.",
+					"default": true,
+					"scope": "resource"
+				},
+				"docker.lsp.telemetry": {
+					"type": "string",
+					"description": "Determines what telemetry is collected by Docker. If vscode.env.isTelemetryEnabled is false, then telemetry collection is disabled regardless of what has been set for this configuration value.",
+					"enum": [
+						"all",
+						"error",
+						"off"
+					],
+					"default": "all",
+					"tags": [
+						"telemetry",
+						"usesOnlineServices"
+					]
+				},
+				"docker.lsp.debugServerPort": {
+					"type": [
+						"number",
+						"null"
+					],
+					"description": "Enter the port on localhost where the language server is running, used for debugging.",
+					"default": null,
+					"scope": "machine-overridable"
+				},
+				"docker.lsp.experimental.vulnerabilityScanning": {
+					"type": "boolean",
+					"description": "Enable image analysis of Dockerfiles (Experimental)",
+					"default": true,
+					"tags": [
+						"experimental"
+					]
+				},
+				"docker.lsp.experimental.scout.criticalHighVulnerabilities": {
+					"markdownDescription": "Determines if `critical_high_vulnerabilities` diagnostics should be shown. If `docker.lsp.experimental.vulnerabilityScanning` is false then this setting will be ignored.",
+					"default": true,
+					"type": "boolean",
+					"tags": [
+						"experimental"
+					]
+				},
+				"docker.lsp.experimental.scout.notPinnedDigest": {
+					"markdownDescription": "Determines if `not_pinned_digest` diagnostics should be shown. If `docker.lsp.experimental.vulnerabilityScanning` is false then this setting will be ignored.",
+					"default": false,
+					"type": "boolean",
+					"tags": [
+						"experimental"
+					]
+				},
+				"docker.lsp.experimental.scout.recommendedTag": {
+					"markdownDescription": "Determines if `recommended_tag` diagnostics should be shown. If `docker.lsp.experimental.vulnerabilityScanning` is false then this setting will be ignored.",
+					"default": false,
+					"type": "boolean",
+					"tags": [
+						"experimental"
+					]
+				},
+				"docker.lsp.experimental.scout.vulnerabilities": {
+					"markdownDescription": "Determines if `vulnerabilities` diagnostics should be shown. If `docker.lsp.experimental.vulnerabilityScanning` is false then this setting will be ignored.",
+					"default": true,
+					"type": "boolean",
+					"tags": [
+						"experimental"
+					]
+				}
+			}
+		}
+	},
+	"scripts": {
+		"prepare": "npm run download:artifacts",
+		"vscode:prepublish": "npm run package",
+		"compile": "webpack",
+		"watch": "webpack --watch",
+		"package": "webpack --mode production --devtool hidden-source-map",
+		"download:artifacts": "node build/downloader.mjs",
+		"compile-tests": "tsc -p . --outDir out",
+		"watch-tests": "tsc -p . -w --outDir out",
+		"pretest": "npm run compile-tests && npm run compile && npm run lint",
+		"lint": "eslint src --ext ts",
+		"test": "extest setup-and-run './out/ui-test/*.test.js' --code_version max --code_settings test/settings.json --extensions_dir .test-extensions",
+		"make-vsix": "vsce package",
+		"prettier:check": "prettier --check --config .prettierrc.yml --ignore-path .prettierignore .",
+		"prettier:fix": "prettier --write --config .prettierrc.yml --ignore-path .prettierignore ."
+	},
+	"dependencies": {
+		"@bugsnag/js": "~8.2.0",
+		"dockerfile-ast": "0.7.1",
+		"dockerfile-language-server-nodejs": "0.14.1",
+		"vscode-languageclient": "9.0.1"
+	},
+	"devDependencies": {
+		"@types/chai": "^4.3.16",
+		"@types/mocha": "^10.0.7",
+		"@types/node": "20.x",
+		"@types/vscode": "^1.8.8",
+		"@typescript-eslint/eslint-plugin": "^7.14.1",
+		"@typescript-eslint/parser": "^7.11.0",
+		"@vscode/test-cli": "^0.0.9",
+		"@vscode/test-electron": "^2.4.0",
+		"@vscode/vsce": "^3.3.0",
+		"axios": "^1.8.4",
+		"chai": "^4.5.0",
+		"eslint": "^8.57.0",
+		"prettier": "^3.5.3",
+		"ts-loader": "^9.5.1",
+		"typescript": "^5.4.5",
+		"umd-compat-loader": "^2.1.2",
+		"vscode-extension-tester": "^8.17.0",
+		"webpack": "^5.92.1",
+		"webpack-cli": "^5.1.4"
+	},
+	"__metadata": {
+		"installedTimestamp": 1761710148940,
+		"targetPlatform": "win32-x64",
+		"size": 43469093
+	}
+}

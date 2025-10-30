@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-config
+  namespace: givemejobs-production
+data:
+  NODE_ENV: "production"
+  PORT: "4000"
+  LOG_LEVEL: "info"
+  CORS_ORIGIN: "https://givemejobs.com"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frontend-config
+  namespace: givemejobs-production
+data:
+  NODE_ENV: "production"
+  PORT: "3000"
+  NEXT_PUBLIC_API_URL: "https://api.givemejobs.com"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-config
+  namespace: givemejobs-staging
+data:
+  NODE_ENV: "staging"
+  PORT: "4000"
+  LOG_LEVEL: "debug"
+  CORS_ORIGIN: "https://staging.givemejobs.com"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frontend-config
+  namespace: givemejobs-staging
+data:
+  NODE_ENV: "staging"
+  PORT: "3000"
+  NEXT_PUBLIC_API_URL: "https://staging-api.givemejobs.com"

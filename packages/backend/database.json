@@ -1,0 +1,10 @@
+{
+  "host": "localhost",
+  "port": 5432,
+  "database": "givemejobs_db",
+  "user": "givemejobs",
+  "password": "dev_password",
+  "schema": "public",
+  "migrations-table": "pgmigrations",
+  "dir": "src/migrations"
+}

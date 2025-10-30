@@ -1,0 +1,145 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: postgres-backup
+  namespace: givemejobs-production
+spec:
+  schedule: "0 2 * * *"  # Daily at 2 AM
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: postgres-backup
+            image: postgres:15-alpine
+            command:
+            - /bin/sh
+            - -c
+            - |
+              apk add --no-cache aws-cli
+              /scripts/backup-postgres.sh
+            env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secrets
+                  key: DATABASE_URL
+            - name: BACKUP_STORAGE_BUCKET
+              value: "givemejobs-backups"
+            volumeMounts:
+            - name: backup-scripts
+              mountPath: /scripts
+            - name: backup-storage
+              mountPath: /backups
+          volumes:
+          - name: backup-scripts
+            configMap:
+              name: backup-scripts
+              defaultMode: 0755
+          - name: backup-storage
+            persistentVolumeClaim:
+              claimName: backup-pvc
+          restartPolicy: OnFailure
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: mongodb-backup
+  namespace: givemejobs-production
+spec:
+  schedule: "0 3 * * *"  # Daily at 3 AM
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: mongodb-backup
+            image: mongo:7
+            command:
+            - /bin/sh
+            - -c
+            - |
+              apt-get update && apt-get install -y awscli
+              /scripts/backup-mongodb.sh
+            env:
+            - name: MONGODB_URI
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secrets
+                  key: MONGODB_URI
+            - name: BACKUP_STORAGE_BUCKET
+              value: "givemejobs-backups"
+            volumeMounts:
+            - name: backup-scripts
+              mountPath: /scripts
+            - name: backup-storage
+              mountPath: /backups
+          volumes:
+          - name: backup-scripts
+            configMap:
+              name: backup-scripts
+              defaultMode: 0755
+          - name: backup-storage
+            persistentVolumeClaim:
+              claimName: backup-pvc
+          restartPolicy: OnFailure
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: backup-pvc
+  namespace: givemejobs-production
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Gi
+  storageClassName: standard
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backup-scripts
+  namespace: givemejobs-production
+data:
+  backup-postgres.sh: |
+    #!/bin/bash
+    set -e
+    TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+    BACKUP_DIR="/backups/postgres"
+    BACKUP_FILE="givemejobs_postgres_${TIMESTAMP}.sql.gz"
+    RETENTION_DAYS=30
+    mkdir -p ${BACKUP_DIR}
+    echo "Starting PostgreSQL backup at $(date)"
+    DB_HOST=$(echo $DATABASE_URL | sed -n 's/.*@\([^:]*\):.*/\1/p')
+    DB_PORT=$(echo $DATABASE_URL | sed -n 's/.*:\([0-9]*\)\/.*/\1/p')
+    DB_NAME=$(echo $DATABASE_URL | sed -n 's/.*\/\([^?]*\).*/\1/p')
+    DB_USER=$(echo $DATABASE_URL | sed -n 's/.*\/\/\([^:]*\):.*/\1/p')
+    DB_PASS=$(echo $DATABASE_URL | sed -n 's/.*:\/\/[^:]*:\([^@]*\)@.*/\1/p')
+    export PGPASSWORD=$DB_PASS
+    pg_dump -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME --format=plain --no-owner --no-acl | gzip > ${BACKUP_DIR}/${BACKUP_FILE}
+    aws s3 cp ${BACKUP_DIR}/${BACKUP_FILE} s3://${BACKUP_STORAGE_BUCKET}/postgres/${BACKUP_FILE}
+    find ${BACKUP_DIR} -name "givemejobs_postgres_*.sql.gz" -mtime +${RETENTION_DAYS} -delete
+    echo "PostgreSQL backup completed at $(date)"
+  
+  backup-mongodb.sh: |
+    #!/bin/bash
+    set -e
+    TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+    BACKUP_DIR="/backups/mongodb"
+    BACKUP_FILE="givemejobs_mongodb_${TIMESTAMP}"
+    RETENTION_DAYS=30
+    mkdir -p ${BACKUP_DIR}
+    echo "Starting MongoDB backup at $(date)"
+    mongodump --uri="${MONGODB_URI}" --out=${BACKUP_DIR}/${BACKUP_FILE} --gzip
+    cd ${BACKUP_DIR}
+    tar -czf ${BACKUP_FILE}.tar.gz ${BACKUP_FILE}
+    rm -rf ${BACKUP_FILE}
+    aws s3 cp ${BACKUP_DIR}/${BACKUP_FILE}.tar.gz s3://${BACKUP_STORAGE_BUCKET}/mongodb/${BACKUP_FILE}.tar.gz
+    find ${BACKUP_DIR} -name "givemejobs_mongodb_*.tar.gz" -mtime +${RETENTION_DAYS} -delete
+    echo "MongoDB backup completed at $(date)"

@@ -1,0 +1,62 @@
+{
+	"name": "mongod-config",
+	"displayName": "Mongod config",
+	"description": "Syntax highlight, autocomplete and formatter for Mongod config files",
+	"publisher": "dalirnet",
+	"version": "0.0.2",
+	"engines": {
+		"vscode": "^1.62.0"
+	},
+	"categories": [
+		"Programming Languages",
+		"Formatters"
+	],
+	"icon": "icon.png",
+	"keywords": [
+		"mongo",
+		"mongod",
+		"conf",
+		"cfg",
+		"highlight",
+		"autocomplete",
+		"formatter"
+	],
+	"activationEvents": [
+		"onLanguage:mongod-config"
+	],
+	"main": "./scripts/extension.js",
+	"contributes": {
+		"languages": [
+			{
+				"id": "mongod-config",
+				"aliases": [
+					"Mongod config",
+					"mongod-config"
+				],
+				"extensions": [
+					"conf",
+					".conf",
+					"cfg",
+					".cfg"
+				],
+				"configuration": "./language-configuration.json"
+			}
+		],
+		"grammars": [
+			{
+				"language": "mongod-config",
+				"scopeName": "source.mongod-config",
+				"path": "./syntaxes/mongod-config.tmLanguage.json"
+			}
+		]
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/dalirnet/vscode-mongod-config.git"
+	},
+	"__metadata": {
+		"installedTimestamp": 1760722052160,
+		"targetPlatform": "universal",
+		"size": 1917077
+	}
+}

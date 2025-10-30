@@ -1,0 +1,167 @@
+{
+  "dashboard": {
+    "title": "GiveMeJobs Platform Metrics",
+    "tags": ["givemejobs", "monitoring"],
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "HTTP Request Rate",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(http_requests_total[5m])",
+            "legendFormat": "{{method}} {{route}}"
+          }
+        ],
+        "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 }
+      },
+      {
+        "id": 2,
+        "title": "HTTP Request Duration (p95)",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))",
+            "legendFormat": "{{method}} {{route}}"
+          }
+        ],
+        "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 }
+      },
+      {
+        "id": 3,
+        "title": "Error Rate",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(http_request_errors_total[5m])",
+            "legendFormat": "{{error_type}}"
+          }
+        ],
+        "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 }
+      },
+      {
+        "id": 4,
+        "title": "Database Query Duration (p95)",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(db_query_duration_seconds_bucket[5m]))",
+            "legendFormat": "{{operation}} {{table}}"
+          }
+        ],
+        "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 }
+      },
+      {
+        "id": 5,
+        "title": "Active Database Connections",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "db_connections_active",
+            "legendFormat": "{{database}}"
+          }
+        ],
+        "gridPos": { "x": 0, "y": 16, "w": 12, "h": 8 }
+      },
+      {
+        "id": 6,
+        "title": "Cache Hit Rate",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(cache_hits_total[5m]) / (rate(cache_hits_total[5m]) + rate(cache_misses_total[5m]))",
+            "legendFormat": "{{cache_type}}"
+          }
+        ],
+        "gridPos": { "x": 12, "y": 16, "w": 12, "h": 8 }
+      },
+      {
+        "id": 7,
+        "title": "Job Searches",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(job_searches_total[5m])",
+            "legendFormat": "{{source}}"
+          }
+        ],
+        "gridPos": { "x": 0, "y": 24, "w": 8, "h": 8 }
+      },
+      {
+        "id": 8,
+        "title": "Documents Generated",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(documents_generated_total[5m])",
+            "legendFormat": "{{type}}"
+          }
+        ],
+        "gridPos": { "x": 8, "y": 24, "w": 8, "h": 8 }
+      },
+      {
+        "id": 9,
+        "title": "Applications Created",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(applications_created_total[5m])",
+            "legendFormat": "Applications"
+          }
+        ],
+        "gridPos": { "x": 16, "y": 24, "w": 8, "h": 8 }
+      },
+      {
+        "id": 10,
+        "title": "External API Call Duration (p95)",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(external_api_duration_seconds_bucket[5m]))",
+            "legendFormat": "{{service}} {{endpoint}}"
+          }
+        ],
+        "gridPos": { "x": 0, "y": 32, "w": 12, "h": 8 }
+      },
+      {
+        "id": 11,
+        "title": "External API Error Rate",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(external_api_errors_total[5m])",
+            "legendFormat": "{{service}}"
+          }
+        ],
+        "gridPos": { "x": 12, "y": 32, "w": 12, "h": 8 }
+      },
+      {
+        "id": 12,
+        "title": "Memory Usage",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "process_resident_memory_bytes",
+            "legendFormat": "Memory"
+          }
+        ],
+        "gridPos": { "x": 0, "y": 40, "w": 12, "h": 8 }
+      },
+      {
+        "id": 13,
+        "title": "CPU Usage",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(process_cpu_seconds_total[5m])",
+            "legendFormat": "CPU"
+          }
+        ],
+        "gridPos": { "x": 12, "y": 40, "w": 12, "h": 8 }
+      }
+    ],
+    "schemaVersion": 16,
+    "version": 0
+  }
+}

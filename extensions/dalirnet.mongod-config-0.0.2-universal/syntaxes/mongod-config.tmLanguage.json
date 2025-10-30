@@ -1,0 +1,49 @@
+{
+    "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+    "name": "Mongod config",
+    "patterns": [
+        {
+            "include": "#comments"
+        },
+        {
+            "include": "#keywords"
+        },
+        {
+            "include": "#lines"
+        }
+    ],
+    "repository": {
+        "comments": {
+            "patterns": [
+                {
+                    "match": "[\\s]*#.*",
+                    "name": "comment.line"
+                }
+            ]
+        },
+        "keywords": {
+            "patterns": [
+                {
+                    "match": "(systemLog|processManagement|net|security|setParameter|storage|operationProfiling|replication|sharding|auditLog|snmp)",
+                    "name": "support.constant"
+                }
+            ]
+        },
+        "lines": {
+            "patterns": [
+                {
+                    "match": "^(.*?):(.*)$",
+                    "captures": {
+                        "1": {
+                            "name": "keyword.other"
+                        },
+                        "2": {
+                            "name": "string.unquoted"
+                        }
+                    }
+                }
+            ]
+        }
+    },
+    "scopeName": "source.mongod-config"
+}

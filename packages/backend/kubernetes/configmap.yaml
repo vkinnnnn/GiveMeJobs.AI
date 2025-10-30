@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: givemejobs-config
+data:
+  NODE_ENV: "production"
+  PORT: "3000"
+  LOG_LEVEL: "info"
+  
+  # CDN Configuration
+  CDN_ENABLED: "true"
+  CDN_PROVIDER: "cloudfront"
+  CDN_BASE_URL: "https://cdn.givemejobs.com"
+  
+  # AWS Configuration
+  AWS_REGION: "us-east-1"
+  
+  # Rate Limiting
+  RATE_LIMIT_WINDOW_MS: "60000"
+  RATE_LIMIT_MAX_REQUESTS: "100"
+  
+  # CORS
+  CORS_ORIGIN: "*"
+  
+  # Session
+  SESSION_TIMEOUT: "3600"
