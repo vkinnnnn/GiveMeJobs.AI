@@ -157,6 +157,36 @@ export class EmailService {
   }
 
   /**
+   * Generic send email method
+   */
+  async sendEmail(options: {
+    to: string;
+    subject: string;
+    html?: string;
+    text?: string;
+  }): Promise<void> {
+    try {
+      const { data, error } = await this.resend.emails.send({
+        from: this.fromEmail,
+        to: options.to,
+        subject: options.subject,
+        html: options.html,
+        text: options.text,
+      });
+
+      if (error) {
+        console.error('Error sending email:', error);
+        throw new Error('Failed to send email');
+      }
+
+      console.log('Email sent:', data?.id);
+    } catch (error) {
+      console.error('Error sending email:', error);
+      throw new Error('Failed to send email');
+    }
+  }
+
+  /**
    * Password reset email template
    */
   private getPasswordResetTemplate(resetUrl: string): string {

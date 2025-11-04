@@ -61,4 +61,6 @@ export interface JobAlert {
   };
   frequency: 'realtime' | 'daily' | 'weekly';
   active: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }

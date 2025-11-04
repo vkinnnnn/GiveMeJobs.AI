@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { apiClient } from '@/lib/api-client';
-import type { UserProfile, Skill, Experience, Education, CareerGoal, UserPreferences } from '@repo/shared-types';
+import type { UserProfile, Skill, Experience, Education, CareerGoal, UserPreferences } from '@givemejobs/shared-types';
 
 interface SkillScore {
   userId: string;

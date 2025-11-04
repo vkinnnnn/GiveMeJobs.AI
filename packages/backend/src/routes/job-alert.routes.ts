@@ -1,11 +1,11 @@
 import { Router } from 'express';
 import { jobAlertController } from '../controllers/job-alert.controller';
-import { authenticateToken } from '../middleware/auth.middleware';
+import { authenticate } from '../middleware/auth.middleware';
 
 const router = Router();
 
 // All routes require authentication
-router.use(authenticateToken);
+router.use(authenticate);
 
 // Job alert routes
 router.post('/alerts', (req, res) => jobAlertController.createJobAlert(req, res));

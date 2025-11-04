@@ -25,7 +25,7 @@ export const performanceMiddleware = (req: Request, res: Response, next: NextFun
     res.setHeader('X-Response-Time', `${duration}ms`);
     
     // Call the original end function
-    return originalEnd.apply(this, args);
+    return originalEnd.apply(this, args as any);
   };
   
   next();

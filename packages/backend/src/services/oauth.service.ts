@@ -146,9 +146,9 @@ export class OAuthService {
     providerId: string
   ): Promise<OAuthProvider | null> {
     const query = `
-      SELECT id, user_id, provider, provider_id, access_token, refresh_token, created_at, updated_at
-      FROM oauth_providers
-      WHERE provider = $1 AND provider_id = $2
+      SELECT id, user_id, provider, provider_account_id as provider_id, access_token, refresh_token, created_at, updated_at
+      FROM oauth_accounts
+      WHERE provider = $1 AND provider_account_id = $2
     `;
 
     const result = await this.pool.query(query, [provider, providerId]);
@@ -166,7 +166,7 @@ export class OAuthService {
     refreshToken?: string;
   }): Promise<void> {
     const query = `
-      INSERT INTO oauth_providers (user_id, provider, provider_id, access_token, refresh_token)
+      INSERT INTO oauth_accounts (user_id, provider, provider_account_id, access_token, refresh_token)
       VALUES ($1, $2, $3, $4, $5)
     `;
 
@@ -188,7 +188,7 @@ export class OAuthService {
     refreshToken?: string
   ): Promise<void> {
     const query = `
-      UPDATE oauth_providers
+      UPDATE oauth_accounts
       SET access_token = $1, refresh_token = $2, updated_at = CURRENT_TIMESTAMP
       WHERE id = $3
     `;
@@ -300,8 +300,8 @@ export class OAuthService {
    */
   async getUserOAuthProviders(userId: string): Promise<OAuthProvider[]> {
     const query = `
-      SELECT id, user_id, provider, provider_id, access_token, refresh_token, created_at, updated_at
-      FROM oauth_providers
+      SELECT id, user_id, provider, provider_account_id as provider_id, access_token, refresh_token, created_at, updated_at
+      FROM oauth_accounts
       WHERE user_id = $1
     `;
 
@@ -314,7 +314,7 @@ export class OAuthService {
    */
   async unlinkOAuthProvider(userId: string, provider: string): Promise<void> {
     const query = `
-      DELETE FROM oauth_providers
+      DELETE FROM oauth_accounts
       WHERE user_id = $1 AND provider = $2
     `;
 

@@ -36,13 +36,19 @@ export function Modal({
     if (isOpen) {
       announce(`${title} dialog opened`, 'polite');
       // Prevent body scroll
-      document.body.style.overflow = 'hidden';
+      if (typeof document !== 'undefined') {
+        document.body.style.overflow = 'hidden';
+      }
     } else {
-      document.body.style.overflow = '';
+      if (typeof document !== 'undefined') {
+        document.body.style.overflow = '';
+      }
     }
 
     return () => {
-      document.body.style.overflow = '';
+      if (typeof document !== 'undefined') {
+        document.body.style.overflow = '';
+      }
     };
   }, [isOpen, title, announce]);
 

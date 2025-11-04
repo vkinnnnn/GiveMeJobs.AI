@@ -28,10 +28,19 @@
     "test:services": "npm run test:oauth && npm run test:email && npm run redis:test",
     "setup:services": "tsx src/scripts/setup-services.ts",
     "check:all": "tsx src/scripts/check-all-services.ts",
+    "blockchain:setup": "tsx src/scripts/setup-blockchain.ts",
+    "blockchain:test": "tsx src/scripts/test-blockchain.ts",
     "monitoring:setup": "powershell -ExecutionPolicy Bypass -File ./scripts/setup-monitoring.ps1",
     "monitoring:start": "docker-compose up -d prometheus grafana elasticsearch logstash kibana",
     "monitoring:stop": "docker-compose stop prometheus grafana elasticsearch logstash kibana",
-    "monitoring:logs": "docker-compose logs -f prometheus grafana elasticsearch logstash kibana"
+    "monitoring:logs": "docker-compose logs -f prometheus grafana elasticsearch logstash kibana",
+    "start:production": "NODE_ENV=production node dist/index.js",
+    "start:staging": "NODE_ENV=staging node dist/index.js",
+    "build:production": "NODE_ENV=production npm run build",
+    "test:connections": "tsx src/scripts/test-connections.ts",
+    "production:setup": "bash scripts/production-setup.sh",
+    "production:backup": "bash backup.sh",
+    "production:monitor": "bash monitor.sh"
   },
   "dependencies": {
     "@elastic/elasticsearch": "^9.1.1",
@@ -40,6 +49,7 @@
     "@sentry/node": "^10.20.0",
     "@sentry/profiling-node": "^10.20.0",
     "@types/pdfkit": "^0.17.3",
+    "@types/web3": "^1.0.20",
     "bcrypt": "^5.1.1",
     "compression": "^1.7.4",
     "cors": "^2.8.5",
@@ -68,6 +78,7 @@
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.0",
     "uuid": "^9.0.1",
+    "web3": "^4.16.0",
     "winston": "^3.18.3",
     "winston-elasticsearch": "^0.19.0",
     "zod": "^3.22.4"

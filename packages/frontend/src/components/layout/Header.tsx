@@ -6,12 +6,15 @@ import { usePathname } from 'next/navigation';
 import { useAuthStore } from '@/stores/auth.store';
 import { useEscapeKey, useAnnouncer } from '@/hooks/useAccessibility';
 import { VisuallyHidden } from '@/components/ui/VisuallyHidden';
-import { useHydration } from '@/hooks/useHydration';
 
 export default function Header() {
   const pathname = usePathname();
-  const hydrated = useHydration();
-  const user = useAuthStore((state) => (hydrated ? state.user : null));
+  const [mounted, setMounted] = useState(false);
+  const user = useAuthStore((state) => (mounted ? state.user : null));
+  
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   const logout = useAuthStore((state) => state.logout);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const mobileMenuRef = useRef<HTMLDivElement>(null);

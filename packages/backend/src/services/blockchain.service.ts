@@ -9,7 +9,7 @@ import {
   AccessLogEntry,
   CredentialAccessResponse,
 } from '../types/blockchain.types';
-import crypto from 'crypto';
+import * as crypto from 'crypto';
 
 export class BlockchainService {
   /**
@@ -115,7 +115,7 @@ export class BlockchainService {
    */
   async decryptCredentialData(credential: BlockchainCredential): Promise<any> {
     const keyData = keyManagementSystem.getUserKey(credential.userId);
-    
+
     if (!keyData) {
       throw new Error('Encryption key not found for user');
     }
@@ -158,7 +158,7 @@ export class BlockchainService {
       metadata: { action: 'credential_deleted' },
     });
 
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   /**
@@ -239,7 +239,7 @@ export class BlockchainService {
           txId: credential.blockchainTxId,
           blockNumber: credential.blockNumber,
           hashMatch: false,
-          status: 'failed',
+          status: 'failed' as const,
         },
       };
     }
@@ -416,7 +416,7 @@ export class BlockchainService {
       metadata: { grantedTo: grant.granted_to },
     });
 
-    return updateResult.rowCount > 0;
+    return (updateResult.rowCount ?? 0) > 0;
   }
 
   /**
@@ -460,7 +460,7 @@ export class BlockchainService {
       metadata: { grantedTo: grant.granted_to },
     });
 
-    return updateResult.rowCount > 0;
+    return (updateResult.rowCount ?? 0) > 0;
   }
 
   /**
@@ -487,10 +487,10 @@ export class BlockchainService {
       action: 'revoked',
       accessor: userId,
       success: true,
-      metadata: { action: 'revoke_all', count: result.rowCount },
+      metadata: { action: 'revoke_all', count: result.rowCount ?? 0 },
     });
 
-    return result.rowCount;
+    return result.rowCount ?? 0;
   }
 
   /**
@@ -503,7 +503,7 @@ export class BlockchainService {
        WHERE expires_at < CURRENT_TIMESTAMP AND revoked = false`
     );
 
-    return result.rowCount;
+    return result.rowCount ?? 0;
   }
 
   /**
@@ -799,7 +799,11 @@ export class BlockchainService {
         verified: verification.isValid,
       },
       data: decryptedData,
-      blockchainProof: verification.blockchainProof,
+      blockchainProof: {
+        txId: verification.blockchainProof.txId,
+        blockNumber: verification.blockchainProof.blockNumber,
+        verified: verification.blockchainProof.hashMatch && verification.blockchainProof.status === 'confirmed',
+      },
     };
   }
 

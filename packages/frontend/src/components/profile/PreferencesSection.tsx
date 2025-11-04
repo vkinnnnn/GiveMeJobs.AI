@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import type { UserPreferences } from '@repo/shared-types';
+import type { UserPreferences } from '@givemejobs/shared-types';
 
 interface PreferencesSectionProps {
   preferences: UserPreferences;

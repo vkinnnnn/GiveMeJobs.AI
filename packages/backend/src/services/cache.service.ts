@@ -28,7 +28,7 @@ export class CacheService {
    */
   async set(key: string, value: any, ttl: number = this.defaultTTL): Promise<void> {
     try {
-      await redisClient.setex(key, ttl, JSON.stringify(value));
+      await redisClient.setEx(key, ttl, JSON.stringify(value));
     } catch (error) {
       console.error('Cache set error:', error);
     }
@@ -52,7 +52,7 @@ export class CacheService {
     try {
       const keys = await redisClient.keys(pattern);
       if (keys.length > 0) {
-        await redisClient.del(...keys);
+        await redisClient.del(keys);
       }
     } catch (error) {
       console.error('Cache delete pattern error:', error);
@@ -126,7 +126,7 @@ export class CacheService {
   async setExpireAt(key: string, value: any, timestamp: number): Promise<void> {
     try {
       await redisClient.set(key, JSON.stringify(value));
-      await redisClient.expireat(key, timestamp);
+      await redisClient.expireAt(key, timestamp);
     } catch (error) {
       console.error('Cache setExpireAt error:', error);
     }

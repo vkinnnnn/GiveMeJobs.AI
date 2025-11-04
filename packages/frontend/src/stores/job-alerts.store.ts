@@ -1,32 +1,17 @@
 import { create } from 'zustand';
 import { apiClient } from '@/lib/api-client';
-
-interface JobAlert {
-  id: string;
-  userId: string;
-  name: string;
-  criteria: {
-    keywords: string[];
-    locations: string[];
-    jobTypes: string[];
-    remoteTypes: string[];
-    salaryMin?: number;
-    minMatchScore?: number;
-  };
-  frequency: 'realtime' | 'daily' | 'weekly';
-  active: boolean;
-}
+import { JobAlert } from '@givemejobs/shared-types';
 
 interface JobAlertsState {
   alerts: JobAlert[];
   isLoading: boolean;
   getAlerts: () => Promise<void>;
-  createAlert: (alert: Omit<JobAlert, 'id' | 'userId'>) => Promise<void>;
-  updateAlert: (id: string, alert: Partial<JobAlert>) => Promise<void>;
+  createAlert: (data: Omit<JobAlert, 'id' | 'userId' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+  updateAlert: (id: string, data: Partial<JobAlert>) => Promise<void>;
   deleteAlert: (id: string) => Promise<void>;
 }
 
-export const useJobAlertsStore = create<JobAlertsState>((set, get) => ({
+export const useJobAlertsStore = create<JobAlertsState>((set, _get) => ({
   alerts: [],
   isLoading: false,
 
@@ -44,33 +29,44 @@ export const useJobAlertsStore = create<JobAlertsState>((set, get) => ({
     }
   },
 
-  createAlert: async (alert) => {
+  createAlert: async (data) => {
     set({ isLoading: true });
     try {
-      await apiClient.post('/api/jobs/alerts', alert);
-      await get().getAlerts();
+      const response = await apiClient.post('/api/jobs/alerts', data);
+      set((state) => ({
+        alerts: [response.data, ...state.alerts],
+        isLoading: false,
+      }));
     } catch (error) {
       set({ isLoading: false });
       throw error;
     }
   },
 
-  updateAlert: async (id, alert) => {
+  updateAlert: async (id: string, data) => {
     set({ isLoading: true });
     try {
-      await apiClient.put(`/api/jobs/alerts/${id}`, alert);
-      await get().getAlerts();
+      const response = await apiClient.put(`/api/jobs/alerts/${id}`, data);
+      set((state) => ({
+        alerts: state.alerts.map((alert) =>
+          alert.id === id ? response.data : alert
+        ),
+        isLoading: false,
+      }));
     } catch (error) {
       set({ isLoading: false });
       throw error;
     }
   },
 
-  deleteAlert: async (id) => {
+  deleteAlert: async (id: string) => {
     set({ isLoading: true });
     try {
       await apiClient.delete(`/api/jobs/alerts/${id}`);
-      await get().getAlerts();
+      set((state) => ({
+        alerts: state.alerts.filter((alert) => alert.id !== id),
+        isLoading: false,
+      }));
     } catch (error) {
       set({ isLoading: false });
       throw error;

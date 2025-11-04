@@ -1,69 +1,33 @@
 import { Router } from 'express';
 import { blockchainController } from '../controllers/blockchain.controller';
 import { authenticate } from '../middleware/auth.middleware';
-import { loadUserRole, requireOwnership } from '../middleware/rbac.middleware';
-import { auditLogMiddleware } from '../middleware/audit-log.middleware';
+import { rateLimitPresets } from '../middleware/rate-limit.middleware';
 
 const router = Router();
 
-// Protected routes (require authentication and role loading)
-router.use('/credentials', authenticate, loadUserRole);
+// Apply rate limiting to blockchain routes (using standard preset)
 
-router.post('/credentials/store', 
-  auditLogMiddleware('credential.store', 'blockchain_credential'),
-  (req, res) => blockchainController.storeCredential(req, res)
-);
+// Public routes (no authentication required)
+router.get('/status', rateLimitPresets.read, blockchainController.getNetworkStatus);
+router.get('/credentials/:id/access', rateLimitPresets.read, blockchainController.accessCredential);
+router.get('/credentials/:id/verify', rateLimitPresets.read, blockchainController.verifyCredential);
 
-router.get('/credentials', (req, res) =>
-  blockchainController.getUserCredentials(req, res)
-);
+// Protected routes (authentication required)
+router.use(authenticate);
 
-router.get('/credentials/:id',
-  auditLogMiddleware('credential.view', 'blockchain_credential', (req) => req.params.id),
-  (req, res) => blockchainController.getCredential(req, res)
-);
+// Credential management
+router.post('/credentials/store', rateLimitPresets.write, blockchainController.storeCredential);
+router.get('/credentials', rateLimitPresets.read, blockchainController.getUserCredentials);
+router.get('/credentials/:id', rateLimitPresets.read, blockchainController.getCredential);
+router.delete('/credentials/:id', rateLimitPresets.write, blockchainController.deleteCredential);
 
-router.post('/credentials/:id/grant-access',
-  auditLogMiddleware('credential.grant_access', 'blockchain_credential', (req) => req.params.id),
-  (req, res) => blockchainController.grantAccess(req, res)
-);
+// Access management
+router.post('/credentials/:id/grant-access', rateLimitPresets.write, blockchainController.grantAccess);
+router.post('/credentials/:id/revoke-access', rateLimitPresets.write, blockchainController.revokeAccess);
+router.get('/credentials/:id/grants', rateLimitPresets.read, blockchainController.getCredentialGrants);
 
-router.post('/credentials/:id/revoke-access',
-  auditLogMiddleware('credential.revoke_access', 'blockchain_credential', (req) => req.params.id),
-  (req, res) => blockchainController.revokeAccess(req, res)
-);
+// Audit and analytics
+router.get('/credentials/:id/access-log', rateLimitPresets.read, blockchainController.getAccessLog);
+router.get('/credentials/:id/stats', rateLimitPresets.read, blockchainController.getCredentialStats);
 
-router.post('/credentials/:id/revoke-all',
-  auditLogMiddleware('credential.revoke_all', 'blockchain_credential', (req) => req.params.id),
-  (req, res) => blockchainController.revokeAllAccess(req, res)
-);
-
-router.get('/credentials/:id/access-log', (req, res) =>
-  blockchainController.getAccessLog(req, res)
-);
-
-router.get('/credentials/:id/stats', (req, res) =>
-  blockchainController.getAccessStats(req, res)
-);
-
-router.get('/credentials/:id/grants', (req, res) =>
-  blockchainController.getCredentialGrants(req, res)
-);
-
-router.delete('/credentials/:id',
-  auditLogMiddleware('credential.delete', 'blockchain_credential', (req) => req.params.id),
-  (req, res) => blockchainController.deleteCredential(req, res)
-);
-
-// Public routes (for verification and access)
-router.get('/credentials/:id/verify',
-  auditLogMiddleware('credential.verify', 'blockchain_credential', (req) => req.params.id),
-  (req, res) => blockchainController.verifyCredential(req, res)
-);
-
-router.get('/access/:credentialId',
-  auditLogMiddleware('credential.access', 'blockchain_credential', (req) => req.params.credentialId),
-  (req, res) => blockchainController.accessCredential(req, res)
-);
-
-export default router;
+export { router as blockchainRoutes };

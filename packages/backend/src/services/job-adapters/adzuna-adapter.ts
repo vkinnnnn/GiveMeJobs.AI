@@ -12,8 +12,9 @@ export class AdzunaAdapter extends BaseJobAdapter {
 
   constructor(appId?: string, appKey?: string, rateLimitConfig?: RateLimitConfig) {
     super(appKey, rateLimitConfig);
-    this.appId = appId || process.env.ADZUNA_APP_ID || '';
-    this.appKey = appKey || process.env.ADZUNA_APP_KEY || '';
+    // Only use env vars if no value is provided (not even empty string)
+    this.appId = appId !== undefined ? appId : (process.env.ADZUNA_APP_ID || '');
+    this.appKey = appKey !== undefined ? appKey : (process.env.ADZUNA_APP_KEY || '');
     this.initializeRateLimiter(rateLimitConfig);
   }
 

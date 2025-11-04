@@ -1,6 +1,4 @@
-import { pool } from '../config/database';
-import { redisClient } from '../config/database';
-import { mongoClient } from '../config/mongodb-schemas';
+import { pgPool, redisClient, mongoClient } from '../config/database';
 
 /**
  * Health Check Utility
@@ -78,14 +76,14 @@ async function checkDatabase(): Promise<ComponentHealth> {
   const startTime = Date.now();
   
   try {
-    await pool.query('SELECT 1');
+    await pgPool.query('SELECT 1');
     const responseTime = Date.now() - startTime;
     
     // Check connection pool stats
     const poolStats = {
-      total: pool.totalCount,
-      idle: pool.idleCount,
-      waiting: pool.waitingCount,
+      total: pgPool.totalCount,
+      idle: pgPool.idleCount,
+      waiting: pgPool.waitingCount,
     };
 
     return {

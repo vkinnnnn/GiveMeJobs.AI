@@ -1,12 +1,12 @@
 import { Router } from 'express';
 import { gdprController } from '../controllers/gdpr.controller';
-import { authenticateToken } from '../middleware/auth.middleware';
+import { authenticate } from '../middleware/auth.middleware';
 import { auditGDPRMiddleware } from '../middleware/audit-log.middleware';
 
 const router = Router();
 
 // All GDPR routes require authentication
-router.use(authenticateToken);
+router.use(authenticate);
 
 // Data export routes
 router.post('/data-export', auditGDPRMiddleware('data_export'), gdprController.requestDataExport.bind(gdprController));

@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAuthStore } from '@/stores/auth.store';
+
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -20,6 +21,11 @@ export default function LoginPage() {
   const { login } = useAuthStore();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const {
     register,
@@ -44,7 +50,9 @@ export default function LoginPage() {
     }
   };
 
-  const handleOAuthLogin = (provider: 'google' | 'linkedin') => {
+  const handleOAuthLogin = async (provider: 'google' | 'linkedin') => {
+    if (!mounted) return;
+    
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
     
     // Check if backend is available
@@ -52,8 +60,24 @@ export default function LoginPage() {
       setError('Backend API is not configured. Please set NEXT_PUBLIC_API_URL environment variable.');
       return;
     }
-    
-    window.location.href = `${apiUrl}/api/auth/oauth/${provider}`;
+
+    try {
+      // Test if backend is reachable
+      const healthCheck = await fetch(`${apiUrl}/health`);
+      if (!healthCheck.ok) {
+        setError('Backend server is not running. Please start the backend server.');
+        return;
+      }
+
+      // Log the OAuth URL for debugging
+      const oauthUrl = `${apiUrl}/api/auth/oauth/${provider}`;
+      console.log('Redirecting to OAuth URL:', oauthUrl);
+      
+      window.location.href = oauthUrl;
+    } catch (error) {
+      console.error('OAuth login error:', error);
+      setError('Cannot connect to backend server. Please ensure the backend is running on http://localhost:4000');
+    }
   };
 
   return (

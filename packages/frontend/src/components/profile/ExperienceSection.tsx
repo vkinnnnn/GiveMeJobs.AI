@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import type { Experience } from '@repo/shared-types';
+import type { Experience } from '@givemejobs/shared-types';
 
 interface ExperienceSectionProps {
   experience: Experience[];

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import type { CareerGoal } from '@repo/shared-types';
+import type { CareerGoal } from '@givemejobs/shared-types';
 
 interface CareerGoalsSectionProps {
   careerGoals: CareerGoal[];

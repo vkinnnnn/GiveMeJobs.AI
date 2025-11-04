@@ -10,9 +10,15 @@ export const metadata: Metadata = {
   description: 'Streamline your job search with AI-powered tools for resume generation, job matching, and application tracking',
   keywords: 'job search, AI resume, job application, career tools, job matching',
   authors: [{ name: 'GiveMeJobs' }],
-  viewport: 'width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover',
-  themeColor: '#2563eb',
   manifest: '/manifest.json',
+};
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  viewportFit: 'cover',
+  themeColor: '#2563eb',
 };
 
 export default function RootLayout({
@@ -21,15 +27,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <meta charSet="utf-8" />
         <link rel="icon" href="/favicon.ico" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
       </head>
-      <body>
-        <SkipLink href="#main-content">Skip to main content</SkipLink>
-        <SkipLink href="#navigation">Skip to navigation</SkipLink>
+      <body suppressHydrationWarning>
+        <div id="skip-links">
+          <SkipLink href="#main-content">Skip to main content</SkipLink>
+          <SkipLink href="#navigation">Skip to navigation</SkipLink>
+        </div>
         <OfflineIndicator />
         <ErrorBoundary>
           {children}

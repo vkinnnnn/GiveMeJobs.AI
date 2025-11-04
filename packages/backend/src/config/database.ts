@@ -64,6 +64,10 @@ export const connectRedis = async () => {
   }
 };
 
+// Legacy exports for backward compatibility
+export const pool = pgPool;
+export default pgPool;
+
 // Graceful shutdown
 export const closeConnections = async () => {
   await pgPool.end();

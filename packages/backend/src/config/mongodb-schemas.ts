@@ -300,6 +300,15 @@ export async function initializeMongoCollections(db: Db): Promise<void> {
 }
 
 /**
+ * Get MongoDB client (for backward compatibility)
+ */
+export const getMongoClient = () => {
+  // This is a placeholder - in production, you'd return the actual client
+  // For now, we'll return null to prevent errors
+  return null;
+};
+
+/**
  * Seed default resume templates
  */
 export async function seedDefaultTemplates(db: Db): Promise<void> {

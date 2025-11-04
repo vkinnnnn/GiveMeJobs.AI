@@ -50,28 +50,33 @@ export enum Permission {
 }
 
 /**
+ * Base user permissions
+ */
+const userPermissions: Permission[] = [
+  Permission.READ_OWN_PROFILE,
+  Permission.WRITE_OWN_PROFILE,
+  Permission.DELETE_OWN_ACCOUNT,
+  Permission.READ_JOBS,
+  Permission.SAVE_JOBS,
+  Permission.CREATE_APPLICATION,
+  Permission.READ_OWN_APPLICATIONS,
+  Permission.UPDATE_OWN_APPLICATIONS,
+  Permission.DELETE_OWN_APPLICATIONS,
+  Permission.GENERATE_DOCUMENTS,
+  Permission.READ_OWN_DOCUMENTS,
+  Permission.UPDATE_OWN_DOCUMENTS,
+  Permission.DELETE_OWN_DOCUMENTS,
+  Permission.READ_OWN_ANALYTICS,
+];
+
+/**
  * Role-based permission mapping
  */
 const rolePermissions: Record<UserRole, Permission[]> = {
-  [UserRole.USER]: [
-    Permission.READ_OWN_PROFILE,
-    Permission.WRITE_OWN_PROFILE,
-    Permission.DELETE_OWN_ACCOUNT,
-    Permission.READ_JOBS,
-    Permission.SAVE_JOBS,
-    Permission.CREATE_APPLICATION,
-    Permission.READ_OWN_APPLICATIONS,
-    Permission.UPDATE_OWN_APPLICATIONS,
-    Permission.DELETE_OWN_APPLICATIONS,
-    Permission.GENERATE_DOCUMENTS,
-    Permission.READ_OWN_DOCUMENTS,
-    Permission.UPDATE_OWN_DOCUMENTS,
-    Permission.DELETE_OWN_DOCUMENTS,
-    Permission.READ_OWN_ANALYTICS,
-  ],
+  [UserRole.USER]: userPermissions,
   [UserRole.MODERATOR]: [
     // Moderators have all user permissions plus:
-    ...rolePermissions[UserRole.USER],
+    ...userPermissions,
     Permission.READ_ALL_USERS,
     Permission.MODERATE_CONTENT,
   ],

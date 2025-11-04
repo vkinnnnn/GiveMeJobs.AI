@@ -60,7 +60,7 @@ router.get('/:id/skills', authenticate, profileController.getSkills);
  * @desc    Update a skill
  * @access  Private
  */
-router.put('/:id/skills/:skillId', authenticate, validateRequest(updateSkillSchema), profileController.updateSkill);
+router.put('/:id/skills/:skillId', authenticate, validateAndSanitize(updateSkillSchema), profileController.updateSkill);
 
 /**
  * @route   DELETE /api/users/:id/skills/:skillId
@@ -78,7 +78,7 @@ router.delete('/:id/skills/:skillId', authenticate, profileController.deleteSkil
  * @desc    Create a new experience
  * @access  Private
  */
-router.post('/:id/experience', authenticate, validateRequest(createExperienceSchema), profileController.createExperience);
+router.post('/:id/experience', authenticate, validateAndSanitize(createExperienceSchema), profileController.createExperience);
 
 /**
  * @route   GET /api/users/:id/experience
@@ -92,7 +92,7 @@ router.get('/:id/experience', authenticate, profileController.getExperience);
  * @desc    Update an experience
  * @access  Private
  */
-router.put('/:id/experience/:expId', authenticate, validateRequest(updateExperienceSchema), profileController.updateExperience);
+router.put('/:id/experience/:expId', authenticate, validateAndSanitize(updateExperienceSchema), profileController.updateExperience);
 
 /**
  * @route   DELETE /api/users/:id/experience/:expId
@@ -110,7 +110,7 @@ router.delete('/:id/experience/:expId', authenticate, profileController.deleteEx
  * @desc    Create a new education
  * @access  Private
  */
-router.post('/:id/education', authenticate, validateRequest(createEducationSchema), profileController.createEducation);
+router.post('/:id/education', authenticate, validateAndSanitize(createEducationSchema), profileController.createEducation);
 
 /**
  * @route   GET /api/users/:id/education
@@ -124,7 +124,7 @@ router.get('/:id/education', authenticate, profileController.getEducation);
  * @desc    Update an education
  * @access  Private
  */
-router.put('/:id/education/:eduId', authenticate, validateRequest(updateEducationSchema), profileController.updateEducation);
+router.put('/:id/education/:eduId', authenticate, validateAndSanitize(updateEducationSchema), profileController.updateEducation);
 
 /**
  * @route   DELETE /api/users/:id/education/:eduId
@@ -142,7 +142,7 @@ router.delete('/:id/education/:eduId', authenticate, profileController.deleteEdu
  * @desc    Create a new career goal
  * @access  Private
  */
-router.post('/:id/career-goals', authenticate, validateRequest(createCareerGoalSchema), profileController.createCareerGoal);
+router.post('/:id/career-goals', authenticate, validateAndSanitize(createCareerGoalSchema), profileController.createCareerGoal);
 
 /**
  * @route   GET /api/users/:id/career-goals
@@ -156,7 +156,7 @@ router.get('/:id/career-goals', authenticate, profileController.getCareerGoals);
  * @desc    Update a career goal
  * @access  Private
  */
-router.put('/:id/career-goals/:goalId', authenticate, validateRequest(updateCareerGoalSchema), profileController.updateCareerGoal);
+router.put('/:id/career-goals/:goalId', authenticate, validateAndSanitize(updateCareerGoalSchema), profileController.updateCareerGoal);
 
 /**
  * @route   DELETE /api/users/:id/career-goals/:goalId

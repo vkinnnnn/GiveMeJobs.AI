@@ -9,12 +9,20 @@ __pycache__/
 .env
 .env.local
 .env.production
+.env.staging
+.env.test
 .env.*.local
+.env.*
 *.pem
 *.key
 *.cert
 *.p12
 *.pfx
+
+# Blockchain private keys and wallets
+*private-key*
+*wallet*
+*keystore*
 
 # Kiro hooks with credentials
 .kiro/hooks/*credentials*.hook

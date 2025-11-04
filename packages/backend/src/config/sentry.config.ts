@@ -1,11 +1,11 @@
 import * as Sentry from '@sentry/node';
-import { ProfilingIntegration } from '@sentry/profiling-node';
+// import { nodeProfilingIntegration } from '@sentry/profiling-node';
 import { config } from './index';
 
-export const initializeSentry = () => {
+export const initializeSentry = (): boolean => {
   if (!config.sentry?.dsn) {
     console.warn('⚠️  Sentry DSN not configured. Error tracking disabled.');
-    return;
+    return false;
   }
 
   Sentry.init({
@@ -16,11 +16,11 @@ export const initializeSentry = () => {
     // Performance Monitoring
     tracesSampleRate: config.sentry.tracesSampleRate || 0.1,
     
-    // Profiling
-    profilesSampleRate: config.sentry.profilesSampleRate || 0.1,
-    integrations: [
-      new ProfilingIntegration(),
-    ],
+    // Profiling (optional - comment out if causing issues)
+    // profilesSampleRate: config.sentry.profilesSampleRate || 0.1,
+    // integrations: [
+    //   new ProfilingIntegration(),
+    // ],
     
     // Release tracking
     release: config.sentry.release || `givemejobs-backend@${process.env.npm_package_version}`,
@@ -51,6 +51,7 @@ export const initializeSentry = () => {
   });
 
   console.log('✅ Sentry error tracking initialized');
+  return true;
 };
 
 export { Sentry };

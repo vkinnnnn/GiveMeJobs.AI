@@ -1,42 +1,71 @@
 import { Request, Response } from 'express';
 import { blockchainService } from '../services/blockchain.service';
-import { CredentialStorageRequest, AccessGrantRequest } from '../types/blockchain.types';
+import { blockchainClient } from '../config/blockchain.config';
+import { z } from 'zod';
+
+// Validation schemas
+const storeCredentialSchema = z.object({
+  credentialType: z.enum(['degree', 'certification', 'transcript', 'license']),
+  credentialData: z.object({
+    title: z.string().min(1),
+    issuer: z.string().min(1),
+    issueDate: z.string().or(z.date()).transform(val => new Date(val)),
+    expiryDate: z.string().or(z.date()).transform(val => new Date(val)).optional(),
+    details: z.record(z.any()),
+  }),
+});
+
+const grantAccessSchema = z.object({
+  grantedTo: z.string().min(1),
+  expiresInDays: z.number().min(1).max(365),
+  purpose: z.string().optional(),
+});
 
 export class BlockchainController {
   /**
    * Store credential on blockchain
    * POST /api/blockchain/credentials/store
    */
-  async storeCredential(req: Request, res: Response): Promise<void> {
+  async storeCredential(req: Request, res: Response) {
     try {
       const userId = req.user?.id;
       if (!userId) {
-        res.status(401).json({ error: 'Unauthorized' });
-        return;
+        return res.status(401).json({ error: 'Authentication required' });
       }
 
-      const request: CredentialStorageRequest = {
-        userId,
-        credentialType: req.body.credentialType,
-        credentialData: req.body.credentialData,
-      };
+      const validatedData = storeCredentialSchema.parse(req.body);
 
-      const credential = await blockchainService.storeCredential(request);
+      const credential = await blockchainService.storeCredential({
+        userId,
+        credentialType: validatedData.credentialType,
+        credentialData: validatedData.credentialData,
+      });
 
       res.status(201).json({
-        message: 'Credential stored successfully',
+        success: true,
         credential: {
           id: credential.id,
           type: credential.credentialType,
           issuer: credential.issuer,
+          timestamp: credential.timestamp,
           blockchainTxId: credential.blockchainTxId,
           blockNumber: credential.blockNumber,
-          timestamp: credential.timestamp,
         },
       });
-    } catch (error: any) {
-      console.error('Error storing credential:', error);
-      res.status(500).json({ error: error.message || 'Failed to store credential' });
+    } catch (error) {
+      console.error('Store credential error:', error);
+      
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({
+          error: 'Validation error',
+          details: error.errors,
+        });
+      }
+
+      res.status(500).json({
+        error: 'Failed to store credential',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      });
     }
   }
 
@@ -44,93 +73,102 @@ export class BlockchainController {
    * Get user's credentials
    * GET /api/blockchain/credentials
    */
-  async getUserCredentials(req: Request, res: Response): Promise<void> {
+  async getUserCredentials(req: Request, res: Response) {
     try {
       const userId = req.user?.id;
       if (!userId) {
-        res.status(401).json({ error: 'Unauthorized' });
-        return;
+        return res.status(401).json({ error: 'Authentication required' });
       }
 
       const credentials = await blockchainService.getUserCredentials(userId);
 
+      const credentialList = credentials.map(cred => ({
+        id: cred.id,
+        type: cred.credentialType,
+        issuer: cred.issuer,
+        timestamp: cred.timestamp,
+        expiryDate: cred.expiryDate,
+        blockchainTxId: cred.blockchainTxId,
+        blockNumber: cred.blockNumber,
+      }));
+
       res.json({
-        credentials: credentials.map(c => ({
-          id: c.id,
-          type: c.credentialType,
-          issuer: c.issuer,
-          blockchainTxId: c.blockchainTxId,
-          timestamp: c.timestamp,
-          expiryDate: c.expiryDate,
-          metadata: c.metadata,
-        })),
+        success: true,
+        credentials: credentialList,
+        total: credentialList.length,
       });
-    } catch (error: any) {
-      console.error('Error fetching credentials:', error);
-      res.status(500).json({ error: error.message || 'Failed to fetch credentials' });
+    } catch (error) {
+      console.error('Get credentials error:', error);
+      res.status(500).json({
+        error: 'Failed to retrieve credentials',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      });
     }
   }
 
   /**
-   * Get credential by ID
+   * Get specific credential
    * GET /api/blockchain/credentials/:id
    */
-  async getCredential(req: Request, res: Response): Promise<void> {
+  async getCredential(req: Request, res: Response) {
     try {
       const userId = req.user?.id;
       if (!userId) {
-        res.status(401).json({ error: 'Unauthorized' });
-        return;
+        return res.status(401).json({ error: 'Authentication required' });
       }
 
       const { id } = req.params;
       const credential = await blockchainService.getCredential(id, userId);
 
       if (!credential) {
-        res.status(404).json({ error: 'Credential not found' });
-        return;
-      }
-
-      // Decrypt data if requested
-      let decryptedData;
-      if (req.query.includeData === 'true') {
-        decryptedData = await blockchainService.decryptCredentialData(credential);
+        return res.status(404).json({ error: 'Credential not found' });
       }
 
       res.json({
+        success: true,
         credential: {
           id: credential.id,
           type: credential.credentialType,
           issuer: credential.issuer,
-          blockchainTxId: credential.blockchainTxId,
-          blockNumber: credential.blockNumber,
           timestamp: credential.timestamp,
           expiryDate: credential.expiryDate,
-          metadata: credential.metadata,
-          data: decryptedData,
+          blockchainTxId: credential.blockchainTxId,
+          blockNumber: credential.blockNumber,
         },
       });
-    } catch (error: any) {
-      console.error('Error fetching credential:', error);
-      res.status(500).json({ error: error.message || 'Failed to fetch credential' });
+    } catch (error) {
+      console.error('Get credential error:', error);
+      res.status(500).json({
+        error: 'Failed to retrieve credential',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      });
     }
   }
 
   /**
-   * Verify credential
+   * Verify credential authenticity
    * GET /api/blockchain/credentials/:id/verify
    */
-  async verifyCredential(req: Request, res: Response): Promise<void> {
+  async verifyCredential(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const accessToken = req.query.accessToken as string;
+      const { accessToken } = req.query;
 
-      const verification = await blockchainService.verifyCredential(id, accessToken);
+      const verification = await blockchainService.verifyCredential(
+        id,
+        accessToken as string
+      );
 
-      res.json({ verification });
-    } catch (error: any) {
-      console.error('Error verifying credential:', error);
-      res.status(500).json({ error: error.message || 'Failed to verify credential' });
+      res.json({
+        success: true,
+        verification,
+      });
+    } catch (error) {
+      console.error('Verify credential error:', error);
+      res.status(500).json({
+        error: 'Failed to verify credential',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      });
     }
   }
 
@@ -138,95 +176,125 @@ export class BlockchainController {
    * Grant access to credential
    * POST /api/blockchain/credentials/:id/grant-access
    */
-  async grantAccess(req: Request, res: Response): Promise<void> {
+  async grantAccess(req: Request, res: Response) {
     try {
       const userId = req.user?.id;
       if (!userId) {
-        res.status(401).json({ error: 'Unauthorized' });
-        return;
+        return res.status(401).json({ error: 'Authentication required' });
       }
 
       const { id } = req.params;
-      const request: AccessGrantRequest = {
-        credentialId: id,
-        grantedTo: req.body.grantedTo,
-        expiresInDays: req.body.expiresInDays || 30,
-        purpose: req.body.purpose,
-      };
+      const validatedData = grantAccessSchema.parse(req.body);
 
-      const grant = await blockchainService.grantAccess(request, userId);
+      const grant = await blockchainService.grantAccess(
+        {
+          credentialId: id,
+          ...validatedData,
+        },
+        userId
+      );
 
       res.status(201).json({
-        message: 'Access granted successfully',
+        success: true,
         grant: {
           id: grant.id,
+          credentialId: grant.credentialId,
           grantedTo: grant.grantedTo,
           accessToken: grant.accessToken,
           expiresAt: grant.expiresAt,
+          createdAt: grant.createdAt,
         },
       });
-    } catch (error: any) {
-      console.error('Error granting access:', error);
-      res.status(500).json({ error: error.message || 'Failed to grant access' });
+    } catch (error) {
+      console.error('Grant access error:', error);
+      
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({
+          error: 'Validation error',
+          details: error.errors,
+        });
+      }
+
+      res.status(500).json({
+        error: 'Failed to grant access',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      });
     }
   }
 
   /**
-   * Revoke access grant
+   * Revoke access to credential
    * POST /api/blockchain/credentials/:id/revoke-access
    */
-  async revokeAccess(req: Request, res: Response): Promise<void> {
+  async revokeAccess(req: Request, res: Response) {
     try {
       const userId = req.user?.id;
       if (!userId) {
-        res.status(401).json({ error: 'Unauthorized' });
-        return;
+        return res.status(401).json({ error: 'Authentication required' });
       }
 
+      const { id } = req.params;
       const { grantId, accessToken } = req.body;
 
       let revoked = false;
+
       if (grantId) {
         revoked = await blockchainService.revokeAccessGrant(grantId, userId);
       } else if (accessToken) {
         revoked = await blockchainService.revokeAccessByToken(accessToken, userId);
       } else {
-        res.status(400).json({ error: 'Either grantId or accessToken is required' });
-        return;
+        // Revoke all access for the credential
+        const revokedCount = await blockchainService.revokeAllCredentialAccess(id, userId);
+        revoked = revokedCount > 0;
       }
 
       res.json({
-        message: 'Access revoked successfully',
+        success: true,
         revoked,
       });
-    } catch (error: any) {
-      console.error('Error revoking access:', error);
-      res.status(500).json({ error: error.message || 'Failed to revoke access' });
+    } catch (error) {
+      console.error('Revoke access error:', error);
+      res.status(500).json({
+        error: 'Failed to revoke access',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      });
     }
   }
 
   /**
-   * Revoke all access for credential
-   * POST /api/blockchain/credentials/:id/revoke-all
+   * Get credential access grants
+   * GET /api/blockchain/credentials/:id/grants
    */
-  async revokeAllAccess(req: Request, res: Response): Promise<void> {
+  async getCredentialGrants(req: Request, res: Response) {
     try {
       const userId = req.user?.id;
       if (!userId) {
-        res.status(401).json({ error: 'Unauthorized' });
-        return;
+        return res.status(401).json({ error: 'Authentication required' });
       }
 
       const { id } = req.params;
-      const count = await blockchainService.revokeAllCredentialAccess(id, userId);
+      const grants = await blockchainService.getCredentialGrants(id, userId);
+
+      const grantList = grants.map(grant => ({
+        id: grant.id,
+        grantedTo: grant.grantedTo,
+        expiresAt: grant.expiresAt,
+        createdAt: grant.createdAt,
+        revoked: grant.revoked,
+        revokedAt: grant.revokedAt,
+      }));
 
       res.json({
-        message: 'All access revoked successfully',
-        revokedCount: count,
+        success: true,
+        grants: grantList,
+        total: grantList.length,
       });
-    } catch (error: any) {
-      console.error('Error revoking all access:', error);
-      res.status(500).json({ error: error.message || 'Failed to revoke all access' });
+    } catch (error) {
+      console.error('Get grants error:', error);
+      res.status(500).json({
+        error: 'Failed to retrieve grants',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      });
     }
   }
 
@@ -234,136 +302,169 @@ export class BlockchainController {
    * Get access logs for credential
    * GET /api/blockchain/credentials/:id/access-log
    */
-  async getAccessLog(req: Request, res: Response): Promise<void> {
+  async getAccessLog(req: Request, res: Response) {
     try {
       const userId = req.user?.id;
       if (!userId) {
-        res.status(401).json({ error: 'Unauthorized' });
-        return;
+        return res.status(401).json({ error: 'Authentication required' });
       }
 
       const { id } = req.params;
+      const { limit = 50, offset = 0, action, startDate, endDate } = req.query;
+
       const options = {
-        limit: req.query.limit ? parseInt(req.query.limit as string) : 50,
-        offset: req.query.offset ? parseInt(req.query.offset as string) : 0,
-        action: req.query.action as string,
-        startDate: req.query.startDate ? new Date(req.query.startDate as string) : undefined,
-        endDate: req.query.endDate ? new Date(req.query.endDate as string) : undefined,
+        limit: parseInt(limit as string),
+        offset: parseInt(offset as string),
+        action: action as string,
+        startDate: startDate ? new Date(startDate as string) : undefined,
+        endDate: endDate ? new Date(endDate as string) : undefined,
       };
 
-      const { logs, total } = await blockchainService.getCredentialAccessLogs(id, userId, options);
+      const { logs, total } = await blockchainService.getCredentialAccessLogs(
+        id,
+        userId,
+        options
+      );
 
       res.json({
-        logs,
+        success: true,
+        logs: logs.map(log => ({
+          id: log.id,
+          timestamp: log.timestamp,
+          action: log.action,
+          accessor: log.accessor,
+          ipAddress: log.ipAddress,
+          success: log.success,
+          metadata: log.metadata,
+        })),
         total,
-        limit: options.limit,
-        offset: options.offset,
+        pagination: {
+          limit: options.limit,
+          offset: options.offset,
+          hasMore: offset + logs.length < total,
+        },
       });
-    } catch (error: any) {
-      console.error('Error fetching access logs:', error);
-      res.status(500).json({ error: error.message || 'Failed to fetch access logs' });
+    } catch (error) {
+      console.error('Get access log error:', error);
+      res.status(500).json({
+        error: 'Failed to retrieve access log',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      });
     }
   }
 
   /**
-   * Get access statistics for credential
+   * Get credential access statistics
    * GET /api/blockchain/credentials/:id/stats
    */
-  async getAccessStats(req: Request, res: Response): Promise<void> {
+  async getCredentialStats(req: Request, res: Response) {
     try {
       const userId = req.user?.id;
       if (!userId) {
-        res.status(401).json({ error: 'Unauthorized' });
-        return;
+        return res.status(401).json({ error: 'Authentication required' });
       }
 
       const { id } = req.params;
       const stats = await blockchainService.getCredentialAccessStats(id, userId);
 
-      res.json({ stats });
-    } catch (error: any) {
-      console.error('Error fetching access stats:', error);
-      res.status(500).json({ error: error.message || 'Failed to fetch access stats' });
+      res.json({
+        success: true,
+        stats,
+      });
+    } catch (error) {
+      console.error('Get credential stats error:', error);
+      res.status(500).json({
+        error: 'Failed to retrieve credential statistics',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      });
     }
   }
 
   /**
-   * Get credential grants
-   * GET /api/blockchain/credentials/:id/grants
+   * Access credential with token (public endpoint)
+   * GET /api/blockchain/credentials/:id/access
    */
-  async getCredentialGrants(req: Request, res: Response): Promise<void> {
+  async accessCredential(req: Request, res: Response) {
     try {
-      const userId = req.user?.id;
-      if (!userId) {
-        res.status(401).json({ error: 'Unauthorized' });
-        return;
-      }
-
       const { id } = req.params;
-      const grants = await blockchainService.getCredentialGrants(id, userId);
-
-      res.json({ grants });
-    } catch (error: any) {
-      console.error('Error fetching grants:', error);
-      res.status(500).json({ error: error.message || 'Failed to fetch grants' });
-    }
-  }
-
-  /**
-   * Access credential with token (public endpoint for employers)
-   * GET /api/blockchain/access/:credentialId
-   */
-  async accessCredential(req: Request, res: Response): Promise<void> {
-    try {
-      const { credentialId } = req.params;
-      const accessToken = req.query.token as string;
+      const { accessToken } = req.query;
 
       if (!accessToken) {
-        res.status(400).json({ error: 'Access token is required' });
-        return;
+        return res.status(400).json({ error: 'Access token required' });
       }
 
-      const ipAddress = req.ip;
-      const userAgent = req.get('user-agent');
+      const ipAddress = req.ip || req.connection.remoteAddress;
+      const userAgent = req.get('User-Agent');
 
       const credentialData = await blockchainService.verifyAndAccessCredential(
-        credentialId,
-        accessToken,
+        id,
+        accessToken as string,
         ipAddress,
         userAgent
       );
 
-      res.json(credentialData);
-    } catch (error: any) {
-      console.error('Error accessing credential:', error);
-      res.status(403).json({ error: error.message || 'Access denied' });
+      res.json({
+        success: true,
+        ...credentialData,
+      });
+    } catch (error) {
+      console.error('Access credential error:', error);
+      res.status(403).json({
+        error: 'Access denied',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      });
     }
   }
 
   /**
-   * Delete credential
+   * Delete credential (GDPR compliance)
    * DELETE /api/blockchain/credentials/:id
    */
-  async deleteCredential(req: Request, res: Response): Promise<void> {
+  async deleteCredential(req: Request, res: Response) {
     try {
       const userId = req.user?.id;
       if (!userId) {
-        res.status(401).json({ error: 'Unauthorized' });
-        return;
+        return res.status(401).json({ error: 'Authentication required' });
       }
 
       const { id } = req.params;
       const deleted = await blockchainService.deleteCredential(id, userId);
 
       if (!deleted) {
-        res.status(404).json({ error: 'Credential not found' });
-        return;
+        return res.status(404).json({ error: 'Credential not found' });
       }
 
-      res.json({ message: 'Credential deleted successfully' });
-    } catch (error: any) {
-      console.error('Error deleting credential:', error);
-      res.status(500).json({ error: error.message || 'Failed to delete credential' });
+      res.json({
+        success: true,
+        message: 'Credential deleted successfully',
+      });
+    } catch (error) {
+      console.error('Delete credential error:', error);
+      res.status(500).json({
+        error: 'Failed to delete credential',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  }
+
+  /**
+   * Get blockchain network status
+   * GET /api/blockchain/status
+   */
+  async getNetworkStatus(req: Request, res: Response) {
+    try {
+      const status = await blockchainClient.getNetworkStatus();
+
+      res.json({
+        success: true,
+        blockchain: status,
+      });
+    } catch (error) {
+      console.error('Get network status error:', error);
+      res.status(500).json({
+        error: 'Failed to get network status',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      });
     }
   }
 }

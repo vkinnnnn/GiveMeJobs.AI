@@ -14,13 +14,15 @@ export const apiClient: AxiosInstance = axios.create({
 // Request interceptor to add auth token
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    // Get token from localStorage (Zustand persist)
-    const authStorage = localStorage.getItem('auth-storage');
-    if (authStorage) {
+    // Get token from localStorage (Zustand persist) - only on client
+    if (typeof window !== 'undefined') {
       try {
-        const { state } = JSON.parse(authStorage);
-        if (state?.accessToken) {
-          config.headers.Authorization = `Bearer ${state.accessToken}`;
+        const authStorage = localStorage.getItem('auth-storage');
+        if (authStorage) {
+          const { state } = JSON.parse(authStorage);
+          if (state?.accessToken) {
+            config.headers.Authorization = `Bearer ${state.accessToken}`;
+          }
         }
       } catch (error) {
         console.error('Error parsing auth storage:', error);
@@ -46,34 +48,36 @@ apiClient.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        const authStorage = localStorage.getItem('auth-storage');
-        if (authStorage) {
-          const { state } = JSON.parse(authStorage);
-          if (state?.refreshToken) {
-            // Try to refresh the token
-            const response = await axios.post(`${API_URL}/api/auth/refresh-token`, {
-              refreshToken: state.refreshToken,
-            });
+        if (typeof window !== 'undefined') {
+          const authStorage = localStorage.getItem('auth-storage');
+          if (authStorage) {
+            const { state } = JSON.parse(authStorage);
+            if (state?.refreshToken) {
+              // Try to refresh the token
+              const response = await axios.post(`${API_URL}/api/auth/refresh-token`, {
+                refreshToken: state.refreshToken,
+              });
 
-            const { accessToken, refreshToken } = response.data;
+              const { accessToken, refreshToken } = response.data;
 
-            // Update tokens in storage
-            const updatedState = {
-              ...state,
-              accessToken,
-              refreshToken,
-            };
-            localStorage.setItem('auth-storage', JSON.stringify({ state: updatedState }));
+              // Update tokens in storage
+              const updatedState = {
+                ...state,
+                accessToken,
+                refreshToken,
+              };
+              localStorage.setItem('auth-storage', JSON.stringify({ state: updatedState }));
 
-            // Retry original request with new token
-            originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-            return apiClient(originalRequest);
+              // Retry original request with new token
+              originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+              return apiClient(originalRequest);
+            }
           }
         }
       } catch (refreshError) {
         // Refresh failed, clear auth and redirect to login
-        localStorage.removeItem('auth-storage');
         if (typeof window !== 'undefined') {
+          localStorage.removeItem('auth-storage');
           window.location.href = '/login';
         }
         return Promise.reject(refreshError);

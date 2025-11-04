@@ -12,14 +12,16 @@ import { webSocketService } from './services/websocket.service';
 import { rateLimitPresets } from './middleware/rate-limit.middleware';
 
 // Initialize Sentry first
-initializeSentry();
+const sentryEnabled = initializeSentry();
 
 const app = express();
 const httpServer = createServer(app);
 
-// Sentry request handler must be the first middleware
-app.use(Sentry.Handlers.requestHandler());
-app.use(Sentry.Handlers.tracingHandler());
+// Sentry request handler must be the first middleware (only if Sentry is configured)
+if (sentryEnabled) {
+  app.use(Sentry.requestHandler());
+  app.use(Sentry.tracingHandler());
+}
 
 // Logging middleware
 import { requestLoggingMiddleware, errorLoggingMiddleware } from './middleware/logging.middleware';
@@ -105,7 +107,7 @@ import documentRoutes from './routes/document.routes';
 import documentTemplateRoutes from './routes/document-template.routes';
 import applicationRoutes from './routes/application.routes';
 import interviewPrepRoutes from './routes/interview-prep.routes';
-import blockchainRoutes from './routes/blockchain.routes';
+import { blockchainRoutes } from './routes/blockchain.routes';
 import analyticsRoutes from './routes/analytics.routes';
 import gdprRoutes from './routes/gdpr.routes';
 import legalRoutes from './routes/legal.routes';
@@ -115,6 +117,8 @@ import auditLogRoutes from './routes/audit-log.routes';
 app.get('/api', (req, res) => {
   res.json({ message: 'GiveMeJobs API' });
 });
+
+// Duplicate health endpoint removed - using comprehensive health check above
 
 // Authentication routes
 app.use('/api/auth', authRoutes);
@@ -164,8 +168,10 @@ app.use('/api/security-incidents', securityIncidentRoutes);
 // Audit log routes
 app.use('/api/audit-logs', auditLogRoutes);
 
-// Sentry error handler must be before other error handlers
-app.use(Sentry.Handlers.errorHandler());
+// Sentry error handler must be before other error handlers (only if Sentry is configured)
+if (sentryEnabled) {
+  app.use(Sentry.errorHandler());
+}
 
 // Error handling middleware
 import { errorHandler, notFoundHandler } from './middleware/error-handler.middleware';
@@ -178,9 +184,18 @@ const PORT = config.port;
 // Initialize WebSocket
 webSocketService.initialize(httpServer);
 
-httpServer.listen(PORT, () => {
+httpServer.listen(PORT, async () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📝 Environment: ${config.nodeEnv}`);
+  
+  // Initialize database connections
+  try {
+    const { connectMongo, connectRedis } = await import('./config/database');
+    await connectMongo();
+    await connectRedis();
+  } catch (error) {
+    console.error('Database connection failed:', error);
+  }
   
   // Start background job scheduler
   schedulerService.start();

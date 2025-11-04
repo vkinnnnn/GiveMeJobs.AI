@@ -1,5 +1,9 @@
 import { pgPool } from '../config/database';
 import { redisClient } from '../config/redis-config';
+import dotenv from 'dotenv';
+
+// Load test environment
+dotenv.config({ path: '.env.test' });
 
 /**
  * Test Setup
@@ -7,6 +11,11 @@ import { redisClient } from '../config/redis-config';
  */
 
 export const setupTestDatabase = async () => {
+  // Ensure Redis is connected for tests
+  if (!redisClient.isOpen) {
+    await redisClient.connect();
+  }
+  
   // Clean up test data before each test suite
   await cleanupTestData();
 };
@@ -16,8 +25,12 @@ export const teardownTestDatabase = async () => {
   await cleanupTestData();
   
   // Close database connections
-  await pgPool.end();
-  await redisClient.quit();
+  if (pgPool.totalCount > 0) {
+    await pgPool.end();
+  }
+  if (redisClient.isOpen) {
+    await redisClient.quit();
+  }
 };
 
 export const cleanupTestData = async () => {

@@ -13,10 +13,12 @@ interface SkipLinkProps {
 export function SkipLink({ href, children }: SkipLinkProps) {
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
-    const target = document.querySelector(href);
-    if (target instanceof HTMLElement) {
-      target.focus();
-      target.scrollIntoView({ behavior: 'smooth' });
+    if (typeof document !== 'undefined') {
+      const target = document.querySelector(href);
+      if (target instanceof HTMLElement) {
+        target.focus();
+        target.scrollIntoView({ behavior: 'smooth' });
+      }
     }
   };
 

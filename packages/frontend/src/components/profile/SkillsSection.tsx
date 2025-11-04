@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import type { Skill } from '@repo/shared-types';
+import type { Skill } from '@givemejobs/shared-types';
 
 interface SkillsSectionProps {
   skills: Skill[];

@@ -64,6 +64,7 @@ export interface JobBoardAdapter {
 export interface RateLimitConfig {
   requestsPerMinute: number;
   requestsPerDay: number;
+  useRedis?: boolean;
 }
 
 export interface SavedJob {

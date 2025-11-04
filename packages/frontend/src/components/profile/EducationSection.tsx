@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import type { Education } from '@repo/shared-types';
+import type { Education } from '@givemejobs/shared-types';
 
 interface EducationSectionProps {
   education: Education[];

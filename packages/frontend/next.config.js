@@ -3,6 +3,12 @@ const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
   
+  // Prevent hydration mismatches
+  onDemandEntries: {
+    maxInactiveAge: 25 * 1000,
+    pagesBufferLength: 2,
+  },
+  
   // Production optimizations
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production' ? {

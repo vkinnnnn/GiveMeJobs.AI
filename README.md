@@ -1,171 +1,152 @@
 # GiveMeJobs Platform
 
-AI-powered job application platform that streamlines the job search process through intelligent automation, personalized recommendations, and secure credential management.
+AI-powered job application platform that streamlines your job search with intelligent tools for resume generation, job matching, and application tracking.
 
-## Project Structure
-
-This is a monorepo managed with npm workspaces and Turbo:
-
-```
-givemejobs-platform/
-├── packages/
-│   ├── frontend/          # Next.js 14 frontend application
-│   ├── backend/           # Express.js backend API
-│   └── shared-types/      # Shared TypeScript types
-├── scripts/               # Database and utility scripts
-├── docker-compose.yml     # Local development services
-└── package.json           # Root package configuration
-```
-
-## Prerequisites
-
-- Node.js 20+ and npm 9+
-- Docker and Docker Compose
-- Git
-
-## Getting Started
-
-### 1. Clone and Install
+## 🚀 Quick Start
 
 ```bash
 # Install dependencies
 npm install
-```
 
-### 2. Environment Setup
+# Start databases
+docker-compose up -d
 
-```bash
-# Copy environment template
-cp .env.example .env
-
-# Edit .env with your configuration
-```
-
-### 3. Start Development Services
-
-```bash
-# Start PostgreSQL, MongoDB, and Redis
-npm run docker:up
-
-# Verify services are running
-docker ps
-```
-
-### 4. Start Development Servers
-
-```bash
-# Start all services in development mode
-npm run dev
-
-# Or start individually:
-# Frontend: http://localhost:3000
-cd packages/frontend && npm run dev
-
-# Backend: http://localhost:4000
+# Start backend
 cd packages/backend && npm run dev
+
+# Start frontend (new terminal)
+cd packages/frontend && npm run dev
 ```
 
-## Available Scripts
+**Access**: http://localhost:3000
 
-### Root Level
+## 📋 Features
 
-- `npm run dev` - Start all packages in development mode
-- `npm run build` - Build all packages
-- `npm run lint` - Lint all packages
-- `npm run format` - Format code with Prettier
-- `npm run docker:up` - Start Docker services
-- `npm run docker:down` - Stop Docker services
-- `npm run docker:logs` - View Docker logs
+- **AI-Powered Resume Generation** - Create tailored resumes with AI
+- **Smart Job Matching** - Find jobs that match your skills
+- **Application Tracking** - Track all your applications in one place
+- **Interview Preparation** - AI-generated interview questions
+- **OAuth Authentication** - Sign in with Google or LinkedIn
+- **Analytics Dashboard** - Track your job search progress
 
-### Package Level
+## 🏗️ Project Structure
 
-Each package has its own scripts. Navigate to the package directory and run:
+```
+givemejobs-platform/
+├── packages/
+│   ├── backend/          # Node.js/Express API
+│   ├── frontend/         # Next.js 14 application
+│   └── shared-types/     # Shared TypeScript types
+├── docs/                 # Documentation
+├── k8s/                  # Kubernetes configurations
+├── scripts/              # Utility scripts
+└── docker-compose.yml    # Local development services
+```
 
-- `npm run dev` - Development mode
-- `npm run build` - Production build
-- `npm run lint` - Lint code
-- `npm run type-check` - TypeScript type checking
-
-## Technology Stack
+## 🛠️ Tech Stack
 
 ### Frontend
-- Next.js 14 (React 18)
+- Next.js 14
+- React 18
 - TypeScript
 - Tailwind CSS
-- Axios
+- Zustand (State Management)
 
 ### Backend
-- Node.js 20
-- Express.js
+- Node.js
+- Express
 - TypeScript
-- PostgreSQL, MongoDB, Redis
+- PostgreSQL
+- MongoDB
+- Redis
 
-### Development Tools
-- Turbo (monorepo build system)
-- ESLint (code linting)
-- Prettier (code formatting)
-- Docker Compose (local services)
+### AI & Services
+- OpenAI (GPT-4)
+- Pinecone (Vector DB)
+- Resend (Email)
+- Adzuna (Job Board API)
 
-## Database Services
+## 📚 Documentation
 
-### PostgreSQL (Port 5432)
-- User data, profiles, applications
-- Connection: `postgresql://givemejobs:dev_password@localhost:5432/givemejobs_db`
+- [Quick Start Guide](./docs/guides/QUICK_START.md)
+- [Configuration Guide](./docs/guides/CONFIGURATION.md)
+- [API Documentation](./docs/api/API_REFERENCE.md)
+- [Deployment Guide](./docs/deployment/DEPLOYMENT_GUIDE.md)
 
-### MongoDB (Port 27017)
-- Document templates, generated content
-- Connection: `mongodb://givemejobs:dev_password@localhost:27017/givemejobs_docs`
+## 🔧 Development
 
-### Redis (Port 6379)
-- Caching, sessions, rate limiting
-- Connection: `redis://:dev_password@localhost:6379`
+### Prerequisites
+- Node.js 18+
+- Docker & Docker Compose
+- PostgreSQL 15+
+- MongoDB 7+
+- Redis 7+
 
-## Development Workflow
+### Environment Setup
 
-1. Create feature branch from `main`
-2. Make changes in appropriate package
-3. Run `npm run lint` and `npm run type-check`
-4. Test changes locally
-5. Commit with descriptive message
-6. Create pull request
-
-## Project Status
-
-### ✅ Backend: Fully Implemented & Configured
-- All backend services complete (Tasks 1-13)
-- All databases configured (PostgreSQL, MongoDB, Redis)
-- All authentication services configured (Google OAuth, LinkedIn OAuth, JWT, MFA)
-- All AI services configured (OpenAI, Pinecone)
-- Email service configured (Resend - 3,000 emails/month free)
-- All APIs ready and tested
-
-### 🚧 Frontend: In Progress
-- Next.js 14 project initialized
-- Needs UI implementation (Tasks 14-20)
-
-### 📊 Configuration Status
-See `🎯_CONFIGURATION_STATUS.md` for detailed service status.
-
-**Quick Check:**
+1. Copy environment files:
 ```bash
-cd packages/backend
-npm run check:all
+cp packages/backend/.env.example packages/backend/.env
+cp packages/frontend/.env.example packages/frontend/.env.local
 ```
 
-## Next Steps
+2. Configure your environment variables (see [Configuration Guide](./docs/guides/CONFIGURATION.md))
 
-1. **Start Development:**
-   ```bash
-   npm run docker:up        # Start databases
-   cd packages/backend && npm run dev    # Start backend
-   cd packages/frontend && npm run dev   # Start frontend
-   ```
+3. Run database migrations:
+```bash
+cd packages/backend
+npm run migrate:up
+npm run mongo:init
+```
 
-2. **Build Frontend UI** (Tasks 14-20)
-3. **Production Readiness** (Tasks 21-26)
+### Running Tests
 
-Refer to `.kiro/specs/givemejobs-platform/tasks.md` for the complete implementation roadmap.
+```bash
+# Backend tests
+cd packages/backend
+npm test
 
-## License
+# Frontend tests
+cd packages/frontend
+npm test
 
-Proprietary - All rights reserved
+# E2E tests
+npm run test:e2e
+```
+
+## 🚢 Deployment
+
+See [Deployment Guide](./docs/deployment/DEPLOYMENT_GUIDE.md) for production deployment instructions.
+
+## 📊 Monitoring
+
+- **Grafana**: http://localhost:3001
+- **Prometheus**: http://localhost:9090
+- **Kibana**: http://localhost:5601
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- OpenAI for GPT-4 API
+- Pinecone for vector database
+- Adzuna for job board API
+- All open-source contributors
+
+## 📞 Support
+
+For support, email support@givemejobs.com or open an issue in the repository.
+
+---
+
+**Built with ❤️ by the GiveMeJobs Team**

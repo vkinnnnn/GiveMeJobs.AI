@@ -11,6 +11,11 @@ export class RateLimiter {
   }
 
   async checkLimit(userId?: string): Promise<boolean> {
+    // If Redis is disabled, always allow requests
+    if (this.config.useRedis === false) {
+      return true;
+    }
+
     const minuteKey = this.getKey('minute', userId);
     const dayKey = this.getKey('day', userId);
 
@@ -29,6 +34,11 @@ export class RateLimiter {
   }
 
   async incrementCounter(userId?: string): Promise<void> {
+    // If Redis is disabled, skip incrementing
+    if (this.config.useRedis === false) {
+      return;
+    }
+
     const minuteKey = this.getKey('minute', userId);
     const dayKey = this.getKey('day', userId);
 

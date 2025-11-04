@@ -33,6 +33,9 @@ export const config = {
     refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
   },
   
+  // Legacy JWT property for backward compatibility
+  jwtSecret: process.env.JWT_SECRET || 'your-secret-key',
+  
   // External APIs
   externalApis: {
     openai: process.env.OPENAI_API_KEY || '',

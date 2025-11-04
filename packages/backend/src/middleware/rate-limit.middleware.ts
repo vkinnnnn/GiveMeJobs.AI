@@ -32,14 +32,14 @@ export function rateLimit(options: RateLimitOptions) {
       const windowStart = now - windowMs;
 
       // Remove old entries outside the window
-      await redisClient.zremrangebyscore(key, 0, windowStart);
+      await redisClient.zRemRangeByScore(key, 0, windowStart);
 
       // Count requests in current window
-      const requestCount = await redisClient.zcard(key);
+      const requestCount = await redisClient.zCard(key);
 
       if (requestCount >= maxRequests) {
         // Get the oldest request timestamp to calculate retry-after
-        const oldestRequest = await redisClient.zrange(key, 0, 0, 'WITHSCORES');
+        const oldestRequest = await redisClient.zRange(key, 0, 0, { REV: false, BY: 'SCORE' });
         const retryAfter = oldestRequest.length > 0 
           ? Math.ceil((parseInt(oldestRequest[1]) + windowMs - now) / 1000)
           : Math.ceil(windowMs / 1000);
@@ -53,7 +53,7 @@ export function rateLimit(options: RateLimitOptions) {
       }
 
       // Add current request to the window
-      await redisClient.zadd(key, now, `${now}-${Math.random()}`);
+      await redisClient.zAdd(key, { score: now, value: `${now}-${Math.random()}` });
       
       // Set expiry on the key
       await redisClient.expire(key, Math.ceil(windowMs / 1000));
@@ -69,7 +69,7 @@ export function rateLimit(options: RateLimitOptions) {
         res.send = function (data: any) {
           // If response is successful, remove the request from rate limit
           if (res.statusCode < 400) {
-            redisClient.zrem(key, `${now}-${Math.random()}`).catch(() => {});
+            redisClient.zRem(key, `${now}-${Math.random()}`).catch(() => {});
           }
           return originalSend.call(this, data);
         };

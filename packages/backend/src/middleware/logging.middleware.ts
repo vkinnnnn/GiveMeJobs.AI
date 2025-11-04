@@ -35,14 +35,16 @@ export const requestLoggingMiddleware = (req: Request, res: Response, next: Next
     });
     
     // Call the original end function
-    return originalEnd.apply(this, args);
+    return originalEnd.apply(this, args as any);
   };
   
   next();
 };
 
 export const errorLoggingMiddleware = (err: Error, req: Request, res: Response, next: NextFunction) => {
-  logger.error('Request error', err, {
+  logger.error('Request error', {
+    error: err.message,
+    stack: err.stack,
     method: req.method,
     url: req.url,
     ip: req.ip,

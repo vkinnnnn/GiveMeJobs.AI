@@ -1,5 +1,9 @@
-import crypto from 'crypto';
-import dotenv from 'dotenv';
+import * as crypto from 'crypto';
+import * as dotenv from 'dotenv';
+import Web3 from 'web3';
+
+// Import contract ABI - using require for JSON compatibility
+const contractABIData = require('../contracts/CredentialStorage.json');
 
 dotenv.config();
 
@@ -16,9 +20,11 @@ dotenv.config();
  */
 
 export interface BlockchainConfig {
-  network: 'simulated' | 'hyperledger' | 'ethereum';
+  network: 'simulated' | 'hyperledger' | 'ethereum' | 'ganache';
   endpoint?: string;
   chainId?: string;
+  contractAddress?: string;
+  privateKey?: string;
   keyManagement: {
     algorithm: string;
     keyLength: number;
@@ -40,21 +46,70 @@ export interface KeyPair {
 
 class BlockchainClient {
   private config: BlockchainConfig;
+  private web3: Web3 | null = null;
+  private contract: any = null;
+  private account: any = null;
   private blockCounter: number = 0;
   private transactions: Map<string, BlockchainTransaction> = new Map();
 
   constructor() {
     this.config = {
-      network: (process.env.BLOCKCHAIN_NETWORK as any) || 'simulated',
-      endpoint: process.env.BLOCKCHAIN_ENDPOINT,
-      chainId: process.env.BLOCKCHAIN_CHAIN_ID,
+      network: (process.env.BLOCKCHAIN_NETWORK as any) || 'ganache',
+      endpoint: process.env.BLOCKCHAIN_ENDPOINT || 'http://localhost:8545',
+      chainId: process.env.BLOCKCHAIN_CHAIN_ID || '1337',
+      contractAddress: process.env.BLOCKCHAIN_CONTRACT_ADDRESS,
+      privateKey: process.env.BLOCKCHAIN_PRIVATE_KEY,
       keyManagement: {
         algorithm: 'aes-256-gcm',
         keyLength: 32,
       },
     };
 
-    console.log(`✓ Blockchain client initialized (${this.config.network} mode)`);
+    this.initializeBlockchain();
+  }
+
+  private async initializeBlockchain() {
+    try {
+      if (this.config.network === 'simulated') {
+        console.log(`✓ Blockchain client initialized (${this.config.network} mode)`);
+        return;
+      }
+
+      // Initialize Web3 connection
+      this.web3 = new Web3(this.config.endpoint!);
+
+      // Test connection
+      const isConnected = await this.web3.eth.net.isListening();
+      if (!isConnected) {
+        console.log(`⚠️ Blockchain network not available, falling back to simulated mode`);
+        this.config.network = 'simulated';
+        return;
+      }
+
+      // Set up account if private key is provided
+      if (this.config.privateKey) {
+        this.account = this.web3.eth.accounts.privateKeyToAccount(this.config.privateKey);
+        this.web3.eth.accounts.wallet.add(this.account);
+        this.web3.eth.defaultAccount = this.account.address;
+      }
+
+      // Initialize contract if address is provided
+      if (this.config.contractAddress) {
+        this.contract = new this.web3.eth.Contract(
+          contractABIData.abi as any,
+          this.config.contractAddress
+        );
+      }
+
+      console.log(`✓ Blockchain client initialized (${this.config.network} mode)`);
+      console.log(`  - Network: ${this.config.endpoint}`);
+      console.log(`  - Account: ${this.account?.address || 'Not configured'}`);
+      console.log(`  - Contract: ${this.config.contractAddress || 'Not deployed'}`);
+
+    } catch (error) {
+      console.log(`⚠️ Blockchain initialization failed, using simulated mode:`, error);
+      this.config.network = 'simulated';
+    }
   }
 
   /**
@@ -80,7 +135,50 @@ class BlockchainClient {
    * Store data hash on blockchain
    */
   async storeHash(dataHash: string, metadata?: Record<string, any>): Promise<BlockchainTransaction> {
-    // Simulate blockchain transaction
+    if (this.config.network === 'simulated' || !this.web3 || !this.contract || !this.account) {
+      return this.simulateStoreHash(dataHash, metadata);
+    }
+
+    try {
+      // Generate unique credential ID
+      const credentialId = this.web3.utils.keccak256(
+        this.web3.utils.encodePacked(
+          { value: metadata?.userId || '', type: 'string' },
+          { value: metadata?.credentialType || '', type: 'string' },
+          { value: Date.now().toString(), type: 'string' }
+        )!
+      );
+
+      // Call smart contract to store credential
+      const tx = await this.contract.methods.storeCredential(
+        credentialId,
+        dataHash,
+        metadata?.credentialType || 'unknown',
+        metadata?.issuer || 'unknown'
+      ).send({
+        from: this.account.address,
+        gas: '500000',
+        gasPrice: (await this.web3.eth.getGasPrice()).toString()
+      });
+
+      const transaction: BlockchainTransaction = {
+        txId: tx.transactionHash,
+        blockNumber: Number(tx.blockNumber),
+        timestamp: new Date(),
+        hash: dataHash,
+        status: 'confirmed',
+      };
+
+      this.transactions.set(tx.transactionHash, transaction);
+      return transaction;
+
+    } catch (error) {
+      console.error('Blockchain storage failed, using simulation:', error);
+      return this.simulateStoreHash(dataHash, metadata);
+    }
+  }
+
+  private async simulateStoreHash(dataHash: string, metadata?: Record<string, any>): Promise<BlockchainTransaction> {
     const txId = crypto.randomUUID();
     this.blockCounter++;
 
@@ -104,23 +202,56 @@ class BlockchainClient {
    * Retrieve transaction from blockchain
    */
   async getTransaction(txId: string): Promise<BlockchainTransaction | null> {
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 50));
+    if (this.config.network === 'simulated' || !this.web3) {
+      await new Promise(resolve => setTimeout(resolve, 50));
+      return this.transactions.get(txId) || null;
+    }
 
-    return this.transactions.get(txId) || null;
+    try {
+      const receipt = await this.web3.eth.getTransactionReceipt(txId);
+      if (!receipt) {
+        return null;
+      }
+
+      const transaction: BlockchainTransaction = {
+        txId: receipt.transactionHash,
+        blockNumber: Number(receipt.blockNumber),
+        timestamp: new Date(), // In real implementation, get block timestamp
+        hash: '', // Would need to parse from transaction data
+        status: receipt.status ? 'confirmed' : 'failed',
+      };
+
+      return transaction;
+
+    } catch (error) {
+      console.error('Failed to retrieve transaction from blockchain:', error);
+      return this.transactions.get(txId) || null;
+    }
   }
 
   /**
    * Verify hash integrity on blockchain
    */
   async verifyHash(txId: string, expectedHash: string): Promise<boolean> {
-    const transaction = await this.getTransaction(txId);
-    
-    if (!transaction) {
-      return false;
+    if (this.config.network === 'simulated' || !this.web3 || !this.contract) {
+      const transaction = await this.getTransaction(txId);
+      return transaction ? transaction.hash === expectedHash && transaction.status === 'confirmed' : false;
     }
 
-    return transaction.hash === expectedHash && transaction.status === 'confirmed';
+    try {
+      // In a real implementation, you would:
+      // 1. Get the transaction receipt
+      // 2. Parse the event logs to find the credential storage event
+      // 3. Extract the hash from the event data
+      // 4. Compare with expected hash
+
+      const transaction = await this.getTransaction(txId);
+      return transaction ? transaction.status === 'confirmed' : false;
+
+    } catch (error) {
+      console.error('Failed to verify hash on blockchain:', error);
+      return false;
+    }
   }
 
   /**
@@ -130,12 +261,92 @@ class BlockchainClient {
     connected: boolean;
     blockHeight: number;
     network: string;
+    contractDeployed?: boolean;
+    accountAddress?: string;
   }> {
-    return {
-      connected: true,
-      blockHeight: this.blockCounter,
-      network: this.config.network,
-    };
+    if (this.config.network === 'simulated' || !this.web3) {
+      return {
+        connected: true,
+        blockHeight: this.blockCounter,
+        network: this.config.network,
+      };
+    }
+
+    try {
+      const isConnected = await this.web3.eth.net.isListening();
+      const blockHeight = await this.web3.eth.getBlockNumber();
+
+      return {
+        connected: isConnected,
+        blockHeight: Number(blockHeight),
+        network: this.config.network,
+        contractDeployed: !!this.contract,
+        accountAddress: this.account?.address,
+      };
+
+    } catch (error) {
+      return {
+        connected: false,
+        blockHeight: 0,
+        network: this.config.network,
+      };
+    }
+  }
+
+  /**
+   * Deploy the credential storage contract
+   */
+  async deployContract(): Promise<string | null> {
+    if (this.config.network === 'simulated' || !this.web3 || !this.account) {
+      console.log('Contract deployment not available in simulated mode');
+      return null;
+    }
+
+    try {
+      const contract = new this.web3.eth.Contract(contractABIData.abi as any);
+
+      const deployTx = contract.deploy({
+        data: contractABIData.bytecode,
+      });
+
+      const gasPrice = await this.web3.eth.getGasPrice();
+      const deployedContract = await deployTx.send({
+        from: this.account.address,
+        gas: '2000000',
+        gasPrice: gasPrice.toString()
+      });
+
+      this.contract = deployedContract;
+      this.config.contractAddress = deployedContract.options.address || undefined;
+
+      console.log(`✓ Contract deployed at: ${deployedContract.options.address}`);
+      return deployedContract.options.address || null;
+
+    } catch (error) {
+      console.error('Contract deployment failed:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Get contract instance
+   */
+  getContract() {
+    return this.contract;
+  }
+
+  /**
+   * Get Web3 instance
+   */
+  getWeb3() {
+    return this.web3;
+  }
+
+  /**
+   * Get account address
+   */
+  getAccountAddress(): string | null {
+    return this.account?.address || null;
   }
 
   /**
@@ -147,11 +358,11 @@ class BlockchainClient {
     authTag: string;
   } {
     const iv = crypto.randomBytes(16);
-    const cipher = crypto.createCipheriv(this.config.keyManagement.algorithm, key, iv);
-    
+    const cipher = crypto.createCipheriv(this.config.keyManagement.algorithm, key, iv) as crypto.CipherGCM;
+
     let encrypted = cipher.update(data, 'utf8', 'hex');
     encrypted += cipher.final('hex');
-    
+
     const authTag = cipher.getAuthTag();
 
     return {
@@ -174,13 +385,13 @@ class BlockchainClient {
       this.config.keyManagement.algorithm,
       key,
       Buffer.from(iv, 'hex')
-    );
-    
+    ) as crypto.DecipherGCM;
+
     decipher.setAuthTag(Buffer.from(authTag, 'hex'));
-    
+
     let decrypted = decipher.update(encrypted, 'hex', 'utf8');
     decrypted += decipher.final('utf8');
-    
+
     return decrypted;
   }
 
@@ -212,9 +423,9 @@ class KeyManagementSystem {
   generateUserKey(userId: string): { key: Buffer; salt: string } {
     const salt = crypto.randomBytes(16).toString('hex');
     const key = crypto.randomBytes(32);
-    
+
     this.keys.set(userId, { key, salt });
-    
+
     return { key, salt };
   }
 

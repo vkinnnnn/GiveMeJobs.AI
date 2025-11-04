@@ -8,7 +8,7 @@ describe('Adzuna API Integration', () => {
 
   beforeAll(() => {
     // Use credentials directly or from env
-    const appId = process.env.ADZUNA_APP_ID || '0ab00c272';
+    const appId = process.env.ADZUNA_APP_ID || 'ab00c272';
     const appKey = process.env.ADZUNA_APP_KEY || '012b349adec137d5ac6c637f8a03d610';
     
     adapter = new AdzunaAdapter(appId, appKey, {
@@ -40,7 +40,7 @@ describe('Adzuna API Integration', () => {
 
   describe('Job Search', () => {
     it('should search for jobs with keywords', async () => {
-      const appId = process.env.ADZUNA_APP_ID || '0ab00c272';
+      const appId = process.env.ADZUNA_APP_ID || 'ab00c272';
       const appKey = process.env.ADZUNA_APP_KEY || '012b349adec137d5ac6c637f8a03d610';
       
       if (!appId || !appKey || appId === '' || appKey === '') {
@@ -166,8 +166,8 @@ describe('Adzuna API Integration', () => {
   describe('Error Handling', () => {
     it('should handle API errors gracefully', async () => {
       const badAdapter = new AdzunaAdapter('invalid-id', 'invalid-key', {
-        maxRequestsPerMinute: 60,
-        maxRequestsPerDay: 1000,
+        requestsPerMinute: 60,
+        requestsPerDay: 1000,
         useRedis: false,
       });
       

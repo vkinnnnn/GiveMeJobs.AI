@@ -1,0 +1,60 @@
+# Production Dockerfile for GiveMeJobs Backend
+FROM node:20-alpine AS base
+
+# Install security updates and required packages
+RUN apk update && apk upgrade && \
+    apk add --no-cache \
+    dumb-init \
+    curl \
+    && rm -rf /var/cache/apk/*
+
+# Create app directory and user
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nextjs -u 1001
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+COPY packages/backend/package*.json ./packages/backend/
+COPY packages/shared-types/package*.json ./packages/shared-types/
+
+# Install dependencies
+FROM base AS deps
+RUN npm ci --only=production && npm cache clean --force
+
+# Build stage
+FROM base AS builder
+COPY . .
+RUN npm ci
+RUN npm run build --workspace=packages/backend
+
+# Production stage
+FROM base AS runner
+
+# Set production environment
+ENV NODE_ENV=production
+ENV PORT=4000
+
+# Copy built application
+COPY --from=builder --chown=nextjs:nodejs /app/packages/backend/dist ./dist
+COPY --from=deps --chown=nextjs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nextjs:nodejs /app/packages/backend/package.json ./package.json
+
+# Create necessary directories
+RUN mkdir -p logs uploads backups && \
+    chown -R nextjs:nodejs logs uploads backups
+
+# Switch to non-root user
+USER nextjs
+
+# Expose port
+EXPOSE 4000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:4000/health || exit 1
+
+# Start application with dumb-init
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["node", "dist/index.js"]

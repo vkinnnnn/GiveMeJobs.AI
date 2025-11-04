@@ -1,13 +1,7 @@
-export interface JobAlert {
-  id: string;
-  userId: string;
-  name: string;
-  criteria: JobAlertCriteria;
-  frequency: 'realtime' | 'daily' | 'weekly';
-  active: boolean;
+import { JobAlert as SharedJobAlert } from '@givemejobs/shared-types';
+
+export interface JobAlert extends SharedJobAlert {
   lastTriggered?: Date;
-  createdAt: Date;
-  updatedAt: Date;
 }
 
 export interface JobAlertCriteria {

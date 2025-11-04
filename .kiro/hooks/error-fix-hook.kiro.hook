@@ -1,0 +1,25 @@
+{
+  "enabled": true,
+  "name": "Complete Error Resolution",
+  "description": "Monitors for any errors during testing or task execution and ensures complete root cause fixes rather than patches before continuing",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "packages/backend/**/*.ts",
+      "packages/frontend/**/*.ts",
+      "packages/shared-types/**/*.ts",
+      "*.test.js",
+      "*.test.ts",
+      "*.spec.js",
+      "*.spec.ts",
+      "package.json",
+      "docker-compose.yml",
+      "*.log"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "When you encounter any error during testing or task execution, stop immediately and perform a complete root cause analysis. Do not apply patches or temporary fixes. Identify the underlying issue, implement a comprehensive solution that addresses the root cause, verify the fix works completely, and only then continue with the remaining task from where you left off. Ensure all related functionality is tested and working properly before proceeding."
+  }
+}

@@ -1,31 +1,29 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/auth.store';
-import { useHydration } from '@/hooks/useHydration';
 
 export default function Home() {
   const router = useRouter();
-  const hydrated = useHydration();
+  const [mounted, setMounted] = useState(false);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
   useEffect(() => {
-    if (hydrated) {
-      // Manually hydrate the store
-      useAuthStore.persist.rehydrate();
-    }
-  }, [hydrated]);
+    setMounted(true);
+    // Manually hydrate the store
+    useAuthStore.persist.rehydrate();
+  }, []);
 
   useEffect(() => {
-    if (hydrated) {
+    if (mounted) {
       if (isAuthenticated) {
         router.push('/dashboard');
       } else {
         router.push('/login');
       }
     }
-  }, [hydrated, isAuthenticated, router]);
+  }, [mounted, isAuthenticated, router]);
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-24">
