@@ -7,17 +7,6 @@ interface BenchmarkComparisonProps {
 }
 
 export function BenchmarkComparison({ benchmarks }: BenchmarkComparisonProps) {
-  const getPerformanceColor = (performance: 'above' | 'below' | 'average') => {
-    switch (performance) {
-      case 'above':
-        return 'text-green-600';
-      case 'below':
-        return 'text-red-600';
-      case 'average':
-        return 'text-gray-600';
-    }
-  };
-
   const getPerformanceBadge = (performance: 'above' | 'below' | 'average') => {
     switch (performance) {
       case 'above':

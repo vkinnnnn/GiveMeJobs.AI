@@ -13,7 +13,7 @@ export default function GenerateDocumentPage() {
   
   const { user } = useAuthStore();
   const { generateResume, generateCoverLetter, templates, getTemplates, isGenerating } = useDocumentsStore();
-  const { jobs, savedJobs, getSavedJobs, getJobById, currentJob } = useJobsStore();
+  const { jobs, savedJobs, getSavedJobs, getJobById } = useJobsStore();
   
   const [selectedJobId, setSelectedJobId] = useState<string>(jobIdParam || '');
   const [documentType, setDocumentType] = useState<DocumentType>(DocumentType.RESUME);

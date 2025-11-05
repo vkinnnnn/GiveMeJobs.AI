@@ -26,9 +26,8 @@ export function SkillProgressChart({ history }: SkillProgressChartProps) {
     (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
   );
 
-  const maxScore = Math.max(...sortedHistory.map((h) => h.score));
-  const minScore = Math.min(...sortedHistory.map((h) => h.score));
-  const scoreRange = maxScore - minScore || 10;
+  // const maxScore = Math.max(...sortedHistory.map((h) => h.score));
+  // const minScore = Math.min(...sortedHistory.map((h) => h.score));
 
   const formatDate = (date: Date) => {
     return new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });

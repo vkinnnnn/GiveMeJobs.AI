@@ -5,16 +5,39 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-// PostgreSQL Pool Configuration
+// Enhanced PostgreSQL Pool Configuration
 export const pgPool = new Pool({
   host: process.env.POSTGRES_HOST || 'localhost',
   port: parseInt(process.env.POSTGRES_PORT || '5432'),
   user: process.env.POSTGRES_USER || 'givemejobs',
   password: process.env.POSTGRES_PASSWORD || 'dev_password',
   database: process.env.POSTGRES_DB || 'givemejobs_db',
-  max: 20,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
+  
+  // Connection pool optimization
+  max: parseInt(process.env.POSTGRES_MAX_CONNECTIONS || '20'), // Maximum number of clients in the pool
+  min: parseInt(process.env.POSTGRES_MIN_CONNECTIONS || '2'),  // Minimum number of clients in the pool
+  
+  // Timeout configurations
+  idleTimeoutMillis: parseInt(process.env.POSTGRES_IDLE_TIMEOUT || '30000'), // 30 seconds
+  connectionTimeoutMillis: parseInt(process.env.POSTGRES_CONNECTION_TIMEOUT || '5000'), // 5 seconds
+  acquireTimeoutMillis: parseInt(process.env.POSTGRES_ACQUIRE_TIMEOUT || '60000'), // 60 seconds
+  
+  // Query timeout
+  query_timeout: parseInt(process.env.POSTGRES_QUERY_TIMEOUT || '30000'), // 30 seconds
+  
+  // Statement timeout
+  statement_timeout: parseInt(process.env.POSTGRES_STATEMENT_TIMEOUT || '30000'), // 30 seconds
+  
+  // SSL configuration for production
+  ssl: process.env.NODE_ENV === 'production' ? {
+    rejectUnauthorized: false
+  } : false,
+  
+  // Application name for monitoring
+  application_name: 'givemejobs-backend',
+  
+  // Enable prepared statements
+  allowExitOnIdle: true,
 });
 
 // Test PostgreSQL connection

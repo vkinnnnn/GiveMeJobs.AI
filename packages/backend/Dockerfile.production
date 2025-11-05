@@ -1,60 +1,76 @@
-# Production Dockerfile for GiveMeJobs Backend
+# Multi-stage production build for Node.js Backend
 FROM node:20-alpine AS base
 
 # Install security updates and required packages
 RUN apk update && apk upgrade && \
-    apk add --no-cache \
-    dumb-init \
-    curl \
-    && rm -rf /var/cache/apk/*
-
-# Create app directory and user
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nextjs -u 1001
+    apk add --no-cache dumb-init curl && \
+    rm -rf /var/cache/apk/*
 
 WORKDIR /app
 
+# Install dependencies stage
+FROM base AS deps
 # Copy package files
 COPY package*.json ./
 COPY packages/backend/package*.json ./packages/backend/
 COPY packages/shared-types/package*.json ./packages/shared-types/
 
-# Install dependencies
-FROM base AS deps
-RUN npm ci --only=production && npm cache clean --force
+# Install production dependencies only
+RUN npm ci --only=production --workspace=@givemejobs/backend --workspace=@givemejobs/shared-types && \
+    npm cache clean --force
 
 # Build stage
 FROM base AS builder
-COPY . .
-RUN npm ci
-RUN npm run build --workspace=packages/backend
+WORKDIR /app
 
-# Production stage
-FROM base AS runner
+# Copy package files and install all dependencies (including dev)
+COPY package*.json ./
+COPY packages/backend/package*.json ./packages/backend/
+COPY packages/shared-types/package*.json ./packages/shared-types/
+RUN npm ci --workspace=@givemejobs/backend --workspace=@givemejobs/shared-types
+
+# Copy source code
+COPY packages/backend/ ./packages/backend/
+COPY packages/shared-types/ ./packages/shared-types/
+COPY tsconfig.json ./
+
+# Build the application
+RUN npm run build --workspace=@givemejobs/backend
+
+# Production runtime stage
+FROM base AS runtime
+
+# Create non-root user with specific UID/GID
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S backend -u 1001 -G nodejs
 
 # Set production environment
-ENV NODE_ENV=production
-ENV PORT=4000
+ENV NODE_ENV=production \
+    PORT=4000 \
+    HOSTNAME="0.0.0.0"
+
+# Copy production dependencies
+COPY --from=deps --chown=backend:nodejs /app/node_modules ./node_modules
+COPY --from=deps --chown=backend:nodejs /app/packages/backend/node_modules ./packages/backend/node_modules
 
 # Copy built application
-COPY --from=builder --chown=nextjs:nodejs /app/packages/backend/dist ./dist
-COPY --from=deps --chown=nextjs:nodejs /app/node_modules ./node_modules
-COPY --from=builder --chown=nextjs:nodejs /app/packages/backend/package.json ./package.json
+COPY --from=builder --chown=backend:nodejs /app/packages/backend/dist ./packages/backend/dist
+COPY --from=builder --chown=backend:nodejs /app/packages/backend/package*.json ./packages/backend/
 
 # Create necessary directories
-RUN mkdir -p logs uploads backups && \
-    chown -R nextjs:nodejs logs uploads backups
+RUN mkdir -p /app/logs /app/uploads && \
+    chown -R backend:nodejs /app/logs /app/uploads
 
 # Switch to non-root user
-USER nextjs
+USER backend
 
 # Expose port
 EXPOSE 4000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+# Health check with proper timeout and retries
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
     CMD curl -f http://localhost:4000/health || exit 1
 
-# Start application with dumb-init
+# Use dumb-init to handle signals properly
 ENTRYPOINT ["dumb-init", "--"]
-CMD ["node", "dist/index.js"]
+CMD ["node", "packages/backend/dist/index.js"]

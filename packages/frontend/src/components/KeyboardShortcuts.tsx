@@ -5,7 +5,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useKeyboardShortcut, useEscapeKey, useFocusTrap } from '@/hooks/useAccessibility';
 
@@ -71,13 +71,13 @@ export function KeyboardShortcuts() {
   ];
 
   // Register all shortcuts
-  shortcuts.forEach((shortcut) => {
-    useKeyboardShortcut(shortcut.key, shortcut.action, {
-      ctrl: shortcut.ctrl,
-      shift: shortcut.shift,
-      alt: shortcut.alt,
-    });
-  });
+  useKeyboardShortcut('/', () => setShowHelp(true));
+  useKeyboardShortcut('j', () => router.push('/jobs'));
+  useKeyboardShortcut('a', () => router.push('/applications'));
+  useKeyboardShortcut('d', () => router.push('/documents'));
+  useKeyboardShortcut('p', () => router.push('/profile'));
+  useKeyboardShortcut('i', () => router.push('/interview-prep'));
+  useKeyboardShortcut('n', () => router.push('/analytics'));
 
   // Close help modal on escape
   useEscapeKey(() => setShowHelp(false), showHelp);

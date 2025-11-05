@@ -1,12 +1,24 @@
 import { execSync } from 'child_process';
 import { Pool } from 'pg';
 import dotenv from 'dotenv';
+import { validateTestConfig, logTestConfig } from './helpers/config-validator';
 
 // Load test environment
 dotenv.config({ path: '.env.test' });
 
 export async function setup() {
   console.log('🔧 Setting up test environment...');
+  
+  // Validate test configuration
+  try {
+    validateTestConfig();
+    console.log('✅ Test configuration validated');
+  } catch (error) {
+    console.error('❌ Test configuration validation failed:');
+    console.error(error.message);
+    logTestConfig();
+    throw error;
+  }
   
   try {
     // Create test database if it doesn't exist

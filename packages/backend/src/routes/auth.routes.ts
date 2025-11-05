@@ -103,6 +103,31 @@ router.post('/mfa/verify', authenticate, validateRequest(mfaVerificationSchema),
 router.post('/mfa/disable', authenticate, authController.disableMFA);
 
 /**
+ * Session Management Routes
+ */
+
+/**
+ * @route   GET /api/auth/sessions
+ * @desc    Get user sessions
+ * @access  Private
+ */
+router.get('/sessions', authenticate, authController.getUserSessions);
+
+/**
+ * @route   DELETE /api/auth/sessions/:sessionId
+ * @desc    Invalidate specific session
+ * @access  Private
+ */
+router.delete('/sessions/:sessionId', authenticate, authController.invalidateSession);
+
+/**
+ * @route   DELETE /api/auth/sessions
+ * @desc    Invalidate all sessions
+ * @access  Private
+ */
+router.delete('/sessions', authenticate, authController.invalidateAllSessions);
+
+/**
  * OAuth Routes
  */
 
@@ -111,27 +136,27 @@ router.post('/mfa/disable', authenticate, authController.disableMFA);
  * @desc    Initiate Google OAuth flow
  * @access  Public
  */
-router.get('/oauth/google', oauthController.googleAuth);
+// router.get('/oauth/google', oauthController.googleAuth);
 
 /**
  * @route   GET /api/auth/oauth/google/callback
  * @desc    Google OAuth callback
  * @access  Public
  */
-router.get('/oauth/google/callback', ...oauthController.googleCallback);
+// router.get('/oauth/google/callback', oauthController.googleCallback);
 
 /**
  * @route   GET /api/auth/oauth/linkedin
  * @desc    Initiate LinkedIn OAuth flow
  * @access  Public
  */
-router.get('/oauth/linkedin', oauthController.linkedinAuth);
+// router.get('/oauth/linkedin', oauthController.linkedinAuth);
 
 /**
  * @route   GET /api/auth/oauth/linkedin/callback
  * @desc    LinkedIn OAuth callback
  * @access  Public
  */
-router.get('/oauth/linkedin/callback', ...oauthController.linkedinCallback);
+// router.get('/oauth/linkedin/callback', oauthController.linkedinCallback);
 
 export default router;

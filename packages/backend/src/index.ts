@@ -1,5 +1,7 @@
+import 'reflect-metadata';
 import express from 'express';
 import { createServer } from 'http';
+import { container } from './config/container';
 import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
@@ -37,6 +39,14 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Request logging
 app.use(requestLoggingMiddleware);
+
+// Service integration middleware for Python services
+import { serviceIntegrationMiddleware, crossServiceErrorMiddleware } from './middleware/service-integration.middleware';
+app.use(serviceIntegrationMiddleware);
+
+// Distributed tracing middleware
+import { distributedTracingMiddleware } from './middleware/distributed-tracing.middleware';
+app.use(distributedTracingMiddleware);
 
 // Global rate limiting
 app.use(rateLimitPresets.global);
@@ -113,6 +123,10 @@ import gdprRoutes from './routes/gdpr.routes';
 import legalRoutes from './routes/legal.routes';
 import securityIncidentRoutes from './routes/security-incident.routes';
 import auditLogRoutes from './routes/audit-log.routes';
+import pythonGatewayRoutes from './routes/python-gateway.routes';
+import serviceAuthRoutes from './routes/service-auth.routes';
+import serviceDiscoveryRoutes from './routes/service-discovery.routes';
+import monitoringRoutes from './routes/monitoring.routes';
 
 app.get('/api', (req, res) => {
   res.json({ message: 'GiveMeJobs API' });
@@ -168,6 +182,18 @@ app.use('/api/security-incidents', securityIncidentRoutes);
 // Audit log routes
 app.use('/api/audit-logs', auditLogRoutes);
 
+// Python gateway routes
+app.use('/api/python', pythonGatewayRoutes);
+
+// Service authentication routes
+app.use('/api/service-auth', serviceAuthRoutes);
+
+// Service discovery and load balancing routes
+app.use('/api/service-discovery', serviceDiscoveryRoutes);
+
+// Unified monitoring routes
+app.use('/api/monitoring', monitoringRoutes);
+
 // Sentry error handler must be before other error handlers (only if Sentry is configured)
 if (sentryEnabled) {
   app.use(Sentry.errorHandler());
@@ -176,6 +202,7 @@ if (sentryEnabled) {
 // Error handling middleware
 import { errorHandler, notFoundHandler } from './middleware/error-handler.middleware';
 app.use(errorLoggingMiddleware);
+app.use(crossServiceErrorMiddleware);
 app.use(notFoundHandler);
 app.use(errorHandler);
 

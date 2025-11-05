@@ -1,0 +1,265 @@
+# Application Alert Rules for GiveMeJobs Platform
+groups:
+  - name: application.rules
+    rules:
+      # High Error Rate
+      - alert: HighErrorRate
+        expr: |
+          (
+            rate(http_requests_total{status=~"5.."}[5m]) /
+            rate(http_requests_total[5m])
+          ) * 100 > 5
+        for: 5m
+        labels:
+          severity: critical
+          team: backend
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is {{ $value }}% for {{ $labels.job }} in {{ $labels.namespace }}"
+          runbook_url: "https://runbooks.givemejobs.ai/high-error-rate"
+
+      # High Response Time
+      - alert: HighResponseTime
+        expr: |
+          histogram_quantile(0.95, 
+            rate(http_request_duration_seconds_bucket[5m])
+          ) > 2
+        for: 5m
+        labels:
+          severity: warning
+          team: backend
+        annotations:
+          summary: "High response time detected"
+          description: "95th percentile response time is {{ $value }}s for {{ $labels.job }}"
+          runbook_url: "https://runbooks.givemejobs.ai/high-response-time"
+
+      # Application Down
+      - alert: ApplicationDown
+        expr: up{job=~"givemejobs-.*"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          team: sre
+        annotations:
+          summary: "Application is down"
+          description: "{{ $labels.job }} has been down for more than 1 minute"
+          runbook_url: "https://runbooks.givemejobs.ai/application-down"
+
+      # High Memory Usage
+      - alert: HighMemoryUsage
+        expr: |
+          (
+            container_memory_working_set_bytes{container!="POD",container!=""} /
+            container_spec_memory_limit_bytes{container!="POD",container!=""} * 100
+          ) > 90
+        for: 5m
+        labels:
+          severity: warning
+          team: sre
+        annotations:
+          summary: "High memory usage"
+          description: "Memory usage is {{ $value }}% for {{ $labels.container }} in {{ $labels.pod }}"
+          runbook_url: "https://runbooks.givemejobs.ai/high-memory-usage"
+
+      # High CPU Usage
+      - alert: HighCPUUsage
+        expr: |
+          (
+            rate(container_cpu_usage_seconds_total{container!="POD",container!=""}[5m]) /
+            container_spec_cpu_quota{container!="POD",container!=""} * 
+            container_spec_cpu_period{container!="POD",container!=""} * 100
+          ) > 90
+        for: 5m
+        labels:
+          severity: warning
+          team: sre
+        annotations:
+          summary: "High CPU usage"
+          description: "CPU usage is {{ $value }}% for {{ $labels.container }} in {{ $labels.pod }}"
+          runbook_url: "https://runbooks.givemejobs.ai/high-cpu-usage"
+
+      # Pod Restart Loop
+      - alert: PodRestartLoop
+        expr: |
+          rate(kube_pod_container_status_restarts_total[15m]) * 60 * 15 > 5
+        for: 5m
+        labels:
+          severity: warning
+          team: sre
+        annotations:
+          summary: "Pod is restarting frequently"
+          description: "Pod {{ $labels.pod }} in {{ $labels.namespace }} has restarted {{ $value }} times in the last 15 minutes"
+          runbook_url: "https://runbooks.givemejobs.ai/pod-restart-loop"
+
+      # Disk Space Low
+      - alert: DiskSpaceLow
+        expr: |
+          (
+            node_filesystem_avail_bytes{mountpoint="/"} /
+            node_filesystem_size_bytes{mountpoint="/"} * 100
+          ) < 10
+        for: 5m
+        labels:
+          severity: critical
+          team: sre
+        annotations:
+          summary: "Disk space is low"
+          description: "Disk space is {{ $value }}% available on {{ $labels.instance }}"
+          runbook_url: "https://runbooks.givemejobs.ai/disk-space-low"
+
+  - name: ai_ml_services.rules
+    rules:
+      # AI Service High Latency
+      - alert: AIServiceHighLatency
+        expr: |
+          histogram_quantile(0.95,
+            rate(ai_request_duration_seconds_bucket{service=~"document_processing|semantic_search|analytics"}[5m])
+          ) > 10
+        for: 5m
+        labels:
+          severity: warning
+          team: ai-ml
+        annotations:
+          summary: "AI service high latency"
+          description: "{{ $labels.service }} 95th percentile latency is {{ $value }}s"
+          runbook_url: "https://runbooks.givemejobs.ai/ai-service-latency"
+
+      # OpenAI API Rate Limit
+      - alert: OpenAIRateLimit
+        expr: |
+          rate(openai_api_errors_total{error_type="rate_limit"}[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+          team: ai-ml
+        annotations:
+          summary: "OpenAI API rate limit exceeded"
+          description: "OpenAI API rate limit errors: {{ $value }} per second"
+          runbook_url: "https://runbooks.givemejobs.ai/openai-rate-limit"
+
+      # Vector Database Connection Issues
+      - alert: VectorDatabaseDown
+        expr: |
+          pinecone_connection_errors_total > 0
+        for: 1m
+        labels:
+          severity: critical
+          team: ai-ml
+        annotations:
+          summary: "Vector database connection issues"
+          description: "Pinecone connection errors detected"
+          runbook_url: "https://runbooks.givemejobs.ai/vector-db-down"
+
+      # Background Job Queue Backlog
+      - alert: JobQueueBacklog
+        expr: |
+          celery_queue_length{queue="default"} > 100
+        for: 10m
+        labels:
+          severity: warning
+          team: backend
+        annotations:
+          summary: "Job queue backlog detected"
+          description: "Celery queue {{ $labels.queue }} has {{ $value }} pending jobs"
+          runbook_url: "https://runbooks.givemejobs.ai/job-queue-backlog"
+
+  - name: database.rules
+    rules:
+      # Database Connection Pool Exhaustion
+      - alert: DatabaseConnectionPoolExhaustion
+        expr: |
+          (
+            pg_stat_activity_count /
+            pg_settings_max_connections * 100
+          ) > 90
+        for: 5m
+        labels:
+          severity: critical
+          team: database
+        annotations:
+          summary: "Database connection pool near exhaustion"
+          description: "PostgreSQL connection usage is {{ $value }}%"
+          runbook_url: "https://runbooks.givemejobs.ai/db-connection-pool"
+
+      # Slow Queries
+      - alert: DatabaseSlowQueries
+        expr: |
+          rate(pg_stat_statements_mean_time_ms[5m]) > 1000
+        for: 5m
+        labels:
+          severity: warning
+          team: database
+        annotations:
+          summary: "Database slow queries detected"
+          description: "Average query time is {{ $value }}ms"
+          runbook_url: "https://runbooks.givemejobs.ai/slow-queries"
+
+      # Redis Memory Usage
+      - alert: RedisHighMemoryUsage
+        expr: |
+          (
+            redis_memory_used_bytes /
+            redis_memory_max_bytes * 100
+          ) > 90
+        for: 5m
+        labels:
+          severity: warning
+          team: cache
+        annotations:
+          summary: "Redis memory usage is high"
+          description: "Redis memory usage is {{ $value }}%"
+          runbook_url: "https://runbooks.givemejobs.ai/redis-memory"
+
+      # MongoDB Replica Set Issues
+      - alert: MongoDBReplicaSetDown
+        expr: |
+          mongodb_replset_member_health == 0
+        for: 1m
+        labels:
+          severity: critical
+          team: database
+        annotations:
+          summary: "MongoDB replica set member is down"
+          description: "MongoDB replica set member {{ $labels.member }} is unhealthy"
+          runbook_url: "https://runbooks.givemejobs.ai/mongodb-replica-set"
+
+  - name: security.rules
+    rules:
+      # Suspicious Login Activity
+      - alert: SuspiciousLoginActivity
+        expr: |
+          rate(auth_failed_attempts_total[5m]) > 10
+        for: 2m
+        labels:
+          severity: warning
+          team: security
+        annotations:
+          summary: "Suspicious login activity detected"
+          description: "Failed login attempts: {{ $value }} per second from {{ $labels.source_ip }}"
+          runbook_url: "https://runbooks.givemejobs.ai/suspicious-login"
+
+      # SSL Certificate Expiry
+      - alert: SSLCertificateExpiry
+        expr: |
+          (probe_ssl_earliest_cert_expiry - time()) / 86400 < 30
+        for: 1h
+        labels:
+          severity: warning
+          team: sre
+        annotations:
+          summary: "SSL certificate expiring soon"
+          description: "SSL certificate for {{ $labels.instance }} expires in {{ $value }} days"
+          runbook_url: "https://runbooks.givemejobs.ai/ssl-expiry"
+
+      # DDoS Attack Detection
+      - alert: PossibleDDoSAttack
+        expr: |
+          rate(nginx_http_requests_total[1m]) > 1000
+        for: 2m
+        labels:
+          severity: critical
+          team: security
+        annotations:
+          summary: "Possible DDoS attack detected"
+          description: "Request rate is {{ $value }} requests per second"
+          runbook_url: "https://runbooks.givemejobs.ai/ddos-attack"

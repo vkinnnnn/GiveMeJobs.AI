@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useDocumentsStore, DocumentTemplate } from '@/stores/documents.store';
+import { useDocumentsStore } from '@/stores/documents.store';
 
 export default function TemplatesPage() {
   const router = useRouter();

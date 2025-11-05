@@ -185,13 +185,8 @@ exports.up = (pgm) => {
   pgm.createIndex('access_logs', 'timestamp');
   pgm.createIndex('access_logs', 'accessor');
 
-  // Create updated_at trigger for blockchain_credentials
-  pgm.createTrigger('blockchain_credentials', 'update_blockchain_credentials_updated_at', {
-    when: 'BEFORE',
-    operation: 'UPDATE',
-    function: 'update_updated_at_column',
-    level: 'ROW',
-  });
+  // Note: Updated_at trigger can be added later if needed
+  // For now, we'll handle updated_at in application code
 };
 
 exports.down = (pgm) => {

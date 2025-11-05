@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: givemejobs-prod
+  labels:
+    name: givemejobs-prod
+    environment: production
+    app.kubernetes.io/name: givemejobs
+    app.kubernetes.io/instance: production
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: givemejobs-quota
+  namespace: givemejobs-prod
+spec:
+  hard:
+    requests.cpu: "8"
+    requests.memory: 16Gi
+    limits.cpu: "16"
+    limits.memory: 32Gi
+    persistentvolumeclaims: "10"
+    services: "20"
+    secrets: "20"
+    configmaps: "20"
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: givemejobs-limits
+  namespace: givemejobs-prod
+spec:
+  limits:
+  - default:
+      cpu: "1"
+      memory: "1Gi"
+    defaultRequest:
+      cpu: "100m"
+      memory: "128Mi"
+    type: Container

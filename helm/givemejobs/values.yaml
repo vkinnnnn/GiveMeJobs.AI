@@ -1,0 +1,318 @@
+# Default values for givemejobs
+# This is a YAML-formatted file.
+
+global:
+  imageRegistry: ""
+  imagePullSecrets: []
+  storageClass: ""
+
+# Application configuration
+app:
+  name: givemejobs
+  environment: production
+  domain: givemejobs.ai
+  
+# Image configuration
+images:
+  backend:
+    repository: givemejobs/backend
+    tag: latest
+    pullPolicy: Always
+  frontend:
+    repository: givemejobs/frontend
+    tag: latest
+    pullPolicy: Always
+  pythonServices:
+    repository: givemejobs/python-services
+    tag: latest
+    pullPolicy: Always
+  celeryWorker:
+    repository: givemejobs/python-services
+    tag: worker
+    pullPolicy: Always
+
+# Backend service configuration
+backend:
+  enabled: true
+  replicaCount: 3
+  image:
+    repository: givemejobs/backend
+    tag: latest
+    pullPolicy: Always
+  service:
+    type: ClusterIP
+    port: 4000
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+# Frontend service configuration
+frontend:
+  enabled: true
+  replicaCount: 3
+  image:
+    repository: givemejobs/frontend
+    tag: latest
+    pullPolicy: Always
+  service:
+    type: ClusterIP
+    port: 3000
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 8
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+# Python AI/ML services configuration
+pythonServices:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: givemejobs/python-services
+    tag: latest
+    pullPolicy: Always
+  service:
+    type: ClusterIP
+    port: 8000
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: 2000m
+      memory: 4Gi
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 6
+    targetCPUUtilizationPercentage: 75
+    targetMemoryUtilizationPercentage: 85
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+# Celery worker configuration
+celeryWorker:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: givemejobs/python-services
+    tag: worker
+    pullPolicy: Always
+  resources:
+    requests:
+      cpu: 300m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 8
+    targetCPUUtilizationPercentage: 80
+    targetMemoryUtilizationPercentage: 85
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+# Nginx reverse proxy configuration
+nginx:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: nginx
+    tag: 1.25-alpine
+    pullPolicy: Always
+  service:
+    type: LoadBalancer
+    port: 80
+    httpsPort: 443
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+# Database configurations
+postgresql:
+  enabled: true
+  auth:
+    postgresPassword: ""
+    username: givemejobs
+    password: ""
+    database: givemejobs_db
+  primary:
+    persistence:
+      enabled: true
+      size: 20Gi
+    resources:
+      requests:
+        cpu: 250m
+        memory: 256Mi
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+
+mongodb:
+  enabled: true
+  auth:
+    enabled: true
+    rootUser: givemejobs
+    rootPassword: ""
+    usernames: ["givemejobs"]
+    passwords: [""]
+    databases: ["givemejobs_docs"]
+  persistence:
+    enabled: true
+    size: 20Gi
+  resources:
+    requests:
+      cpu: 250m
+      memory: 256Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+
+redis:
+  enabled: true
+  auth:
+    enabled: true
+    password: ""
+  master:
+    persistence:
+      enabled: true
+      size: 8Gi
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+
+# Monitoring configuration
+monitoring:
+  prometheus:
+    enabled: true
+    server:
+      persistentVolume:
+        enabled: true
+        size: 20Gi
+      resources:
+        requests:
+          cpu: 200m
+          memory: 512Mi
+        limits:
+          cpu: 1000m
+          memory: 2Gi
+  grafana:
+    enabled: true
+    persistence:
+      enabled: true
+      size: 10Gi
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+
+# Security configuration
+security:
+  networkPolicies:
+    enabled: true
+  podSecurityPolicy:
+    enabled: true
+  rbac:
+    create: true
+
+# Ingress configuration
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  hosts:
+    - host: givemejobs.ai
+      paths:
+        - path: /
+          pathType: Prefix
+          service: frontend
+    - host: api.givemejobs.ai
+      paths:
+        - path: /
+          pathType: Prefix
+          service: backend
+    - host: ai.givemejobs.ai
+      paths:
+        - path: /
+          pathType: Prefix
+          service: python-services
+  tls:
+    - secretName: givemejobs-tls
+      hosts:
+        - givemejobs.ai
+        - api.givemejobs.ai
+        - ai.givemejobs.ai
+
+# Service mesh (Istio) configuration
+serviceMesh:
+  enabled: false
+  istio:
+    enabled: false
+    gateway:
+      enabled: false
+    virtualService:
+      enabled: false
+    destinationRule:
+      enabled: false
+
+# External secrets configuration
+externalSecrets:
+  enabled: false
+  secretStore:
+    provider: aws
+    region: us-east-1
+
+# Backup configuration
+backup:
+  enabled: true
+  schedule: "0 2 * * *"  # Daily at 2 AM
+  retention: "30d"
+  storage:
+    type: s3
+    bucket: givemejobs-backups
+    region: us-east-1

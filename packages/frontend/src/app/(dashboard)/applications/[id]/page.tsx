@@ -144,7 +144,10 @@ export default function ApplicationDetailsPage() {
           {/* Application Health Bar */}
           <div className="bg-white shadow rounded-lg p-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Application Progress</h2>
-            <ApplicationHealthBar application={currentApplication} />
+            <ApplicationHealthBar 
+              currentStatus={currentApplication.status} 
+              appliedDate={currentApplication.appliedDate} 
+            />
           </div>
 
           {/* Application Details */}
@@ -320,7 +323,10 @@ export default function ApplicationDetailsPage() {
                 {currentApplication.notes.length} note{currentApplication.notes.length !== 1 ? 's' : ''}
               </span>
             </div>
-            <ApplicationNotes notes={currentApplication.notes} />
+            <ApplicationNotes 
+              notes={currentApplication.notes} 
+              onAddNote={(note) => addNote(applicationId, note)}
+            />
           </div>
         </div>
       </div>

@@ -69,7 +69,7 @@ export default function ExportDocumentPage() {
         
         <h1 className="text-3xl font-bold text-gray-900">Export Document</h1>
         <p className="text-gray-600 mt-1">
-          Export "{currentDocument.title}" in your preferred format
+          Export &quot;{currentDocument.title}&quot; in your preferred format
         </p>
       </div>
 

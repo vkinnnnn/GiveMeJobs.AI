@@ -171,7 +171,7 @@ export function ExportPanel({ onExport, loading }: ExportPanelProps) {
               />
             </svg>
             <div className="text-sm text-gray-700">
-              <p className="font-medium mb-1">What's included in the export?</p>
+              <p className="font-medium mb-1">What&apos;s included in the export?</p>
               <ul className="list-disc list-inside space-y-1 text-xs text-gray-600">
                 <li>All key metrics (applications, response rates, interview rates)</li>
                 <li>Trend data for the selected time period</li>

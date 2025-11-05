@@ -139,7 +139,6 @@ export function ApplicationHealthBar({ currentStatus, appliedDate }: Application
                 {stages.map((stage, index) => {
                   const isCompleted = index < currentStageIndex;
                   const isCurrent = index === currentStageIndex;
-                  const isPending = index > currentStageIndex;
 
                   return (
                     <div key={stage.status} className="flex flex-col items-center flex-1">

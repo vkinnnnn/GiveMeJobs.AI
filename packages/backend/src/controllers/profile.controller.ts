@@ -14,7 +14,7 @@ import {
 
 /**
  * Profile Controller
- * Handles HTTP requests for user profile endpoints
+ * Handles HTTP requests for user profile endpoints with robust error handling
  */
 export class ProfileController {
   private profileService: ProfileService;
@@ -41,12 +41,13 @@ export class ProfileController {
         return;
       }
 
-      const profile = await this.profileService.getProfile(id);
+      const result = await this.profileService.getProfile(id);
 
-      if (!profile) {
-        res.status(404).json({
+      if (result.failure) {
+        const statusCode = result.error.message.includes('not found') ? 404 : 500;
+        res.status(statusCode).json({
           success: false,
-          error: 'Profile not found',
+          error: result.error.message,
         });
         return;
       }
@@ -54,14 +55,17 @@ export class ProfileController {
       res.status(200).json({
         success: true,
         data: {
-          profile,
+          profile: result.data,
         },
       });
     } catch (error) {
-      console.error('Get profile error:', error);
+      console.error('Get profile controller error', { 
+        userId: req.params.id, 
+        error: error.message 
+      });
       res.status(500).json({
         success: false,
-        error: 'Failed to get profile',
+        error: 'Internal server error',
       });
     }
   };
@@ -85,12 +89,13 @@ export class ProfileController {
         return;
       }
 
-      const profile = await this.profileService.updateProfile(id, data);
+      const result = await this.profileService.updateProfile(id, data);
 
-      if (!profile) {
-        res.status(404).json({
+      if (result.failure) {
+        const statusCode = result.error.message.includes('not found') ? 404 : 400;
+        res.status(statusCode).json({
           success: false,
-          error: 'Profile not found',
+          error: result.error.message,
         });
         return;
       }
@@ -99,14 +104,17 @@ export class ProfileController {
         success: true,
         message: 'Profile updated successfully',
         data: {
-          profile,
+          profile: result.data,
         },
       });
     } catch (error) {
-      console.error('Update profile error:', error);
+      console.error('Update profile controller error', { 
+        userId: req.params.id, 
+        error: error.message 
+      });
       res.status(500).json({
         success: false,
-        error: 'Failed to update profile',
+        error: 'Internal server error',
       });
     }
   };
@@ -130,20 +138,29 @@ export class ProfileController {
         return;
       }
 
-      const skill = await this.profileService.createSkill(id, data);
+      const result = await this.profileService.createSkill(id, data);
+
+      if (result.failure) {
+        res.status(400).json({
+          success: false,
+          error: result.error.message,
+        });
+        return;
+      }
 
       res.status(201).json({
         success: true,
         message: 'Skill created successfully',
-        data: {
-          skill,
-        },
+        data: result.data,
       });
     } catch (error) {
-      console.error('Create skill error:', error);
+      console.error('Create skill controller error', { 
+        userId: req.params.id, 
+        error: error.message 
+      });
       res.status(500).json({
         success: false,
-        error: 'Failed to create skill',
+        error: 'Internal server error',
       });
     }
   };
@@ -166,19 +183,30 @@ export class ProfileController {
         return;
       }
 
-      const skills = await this.profileService.getSkills(id);
+      const result = await this.profileService.getSkills(id);
+
+      if (result.failure) {
+        res.status(500).json({
+          success: false,
+          error: result.error.message,
+        });
+        return;
+      }
 
       res.status(200).json({
         success: true,
         data: {
-          skills,
+          skills: result.data,
         },
       });
     } catch (error) {
-      console.error('Get skills error:', error);
+      console.error('Get skills controller error', { 
+        userId: req.params.id, 
+        error: error.message 
+      });
       res.status(500).json({
         success: false,
-        error: 'Failed to get skills',
+        error: 'Internal server error',
       });
     }
   };
@@ -202,12 +230,13 @@ export class ProfileController {
         return;
       }
 
-      const skill = await this.profileService.updateSkill(skillId, id, data);
+      const result = await this.profileService.updateSkill(skillId, id, data);
 
-      if (!skill) {
-        res.status(404).json({
+      if (result.failure) {
+        const statusCode = result.error.message.includes('not found') ? 404 : 400;
+        res.status(statusCode).json({
           success: false,
-          error: 'Skill not found',
+          error: result.error.message,
         });
         return;
       }
@@ -215,15 +244,17 @@ export class ProfileController {
       res.status(200).json({
         success: true,
         message: 'Skill updated successfully',
-        data: {
-          skill,
-        },
+        data: result.data,
       });
     } catch (error) {
-      console.error('Update skill error:', error);
+      console.error('Update skill controller error', { 
+        skillId: req.params.skillId,
+        userId: req.params.id, 
+        error: error.message 
+      });
       res.status(500).json({
         success: false,
-        error: 'Failed to update skill',
+        error: 'Internal server error',
       });
     }
   };
@@ -246,12 +277,13 @@ export class ProfileController {
         return;
       }
 
-      const skill = await this.profileService.deleteSkill(skillId, id);
+      const result = await this.profileService.deleteSkill(skillId, id);
 
-      if (!skill) {
-        res.status(404).json({
+      if (result.failure) {
+        const statusCode = result.error.message.includes('not found') ? 404 : 400;
+        res.status(statusCode).json({
           success: false,
-          error: 'Skill not found',
+          error: result.error.message,
         });
         return;
       }
@@ -261,10 +293,14 @@ export class ProfileController {
         message: 'Skill deleted successfully',
       });
     } catch (error) {
-      console.error('Delete skill error:', error);
+      console.error('Delete skill controller error', { 
+        skillId: req.params.skillId,
+        userId: req.params.id, 
+        error: error.message 
+      });
       res.status(500).json({
         success: false,
-        error: 'Failed to delete skill',
+        error: 'Internal server error',
       });
     }
   };
@@ -288,20 +324,29 @@ export class ProfileController {
         return;
       }
 
-      const experience = await this.profileService.createExperience(id, data);
+      const result = await this.profileService.createExperience(id, data);
+
+      if (result.failure) {
+        res.status(400).json({
+          success: false,
+          error: result.error.message,
+        });
+        return;
+      }
 
       res.status(201).json({
         success: true,
         message: 'Experience created successfully',
-        data: {
-          experience,
-        },
+        data: result.data,
       });
     } catch (error) {
-      console.error('Create experience error:', error);
+      console.error('Create experience controller error', { 
+        userId: req.params.id, 
+        error: error.message 
+      });
       res.status(500).json({
         success: false,
-        error: 'Failed to create experience',
+        error: 'Internal server error',
       });
     }
   };
@@ -324,19 +369,30 @@ export class ProfileController {
         return;
       }
 
-      const experience = await this.profileService.getExperience(id);
+      const result = await this.profileService.getExperience(id);
+
+      if (result.failure) {
+        res.status(500).json({
+          success: false,
+          error: result.error.message,
+        });
+        return;
+      }
 
       res.status(200).json({
         success: true,
         data: {
-          experience,
+          experience: result.data,
         },
       });
     } catch (error) {
-      console.error('Get experience error:', error);
+      console.error('Get experience controller error', { 
+        userId: req.params.id, 
+        error: error.message 
+      });
       res.status(500).json({
         success: false,
-        error: 'Failed to get experience',
+        error: 'Internal server error',
       });
     }
   };
@@ -351,7 +407,6 @@ export class ProfileController {
       const requestingUserId = req.jwtPayload?.userId;
       const data: UpdateExperienceInput = req.body;
 
-      // Users can only update their own experience
       if (id !== requestingUserId) {
         res.status(403).json({
           success: false,
@@ -360,12 +415,13 @@ export class ProfileController {
         return;
       }
 
-      const experience = await this.profileService.updateExperience(expId, id, data);
+      const result = await this.profileService.updateExperience(expId, id, data);
 
-      if (!experience) {
-        res.status(404).json({
+      if (result.failure) {
+        const statusCode = result.error.message.includes('not found') ? 404 : 400;
+        res.status(statusCode).json({
           success: false,
-          error: 'Experience not found',
+          error: result.error.message,
         });
         return;
       }
@@ -373,15 +429,17 @@ export class ProfileController {
       res.status(200).json({
         success: true,
         message: 'Experience updated successfully',
-        data: {
-          experience,
-        },
+        data: result.data,
       });
     } catch (error) {
-      console.error('Update experience error:', error);
+      console.error('Update experience controller error', { 
+        expId: req.params.expId,
+        userId: req.params.id, 
+        error: error.message 
+      });
       res.status(500).json({
         success: false,
-        error: 'Failed to update experience',
+        error: 'Internal server error',
       });
     }
   };
@@ -395,7 +453,6 @@ export class ProfileController {
       const { id, expId } = req.params;
       const requestingUserId = req.jwtPayload?.userId;
 
-      // Users can only delete their own experience
       if (id !== requestingUserId) {
         res.status(403).json({
           success: false,
@@ -404,12 +461,13 @@ export class ProfileController {
         return;
       }
 
-      const experience = await this.profileService.deleteExperience(expId, id);
+      const result = await this.profileService.deleteExperience(expId, id);
 
-      if (!experience) {
-        res.status(404).json({
+      if (result.failure) {
+        const statusCode = result.error.message.includes('not found') ? 404 : 400;
+        res.status(statusCode).json({
           success: false,
-          error: 'Experience not found',
+          error: result.error.message,
         });
         return;
       }
@@ -419,10 +477,14 @@ export class ProfileController {
         message: 'Experience deleted successfully',
       });
     } catch (error) {
-      console.error('Delete experience error:', error);
+      console.error('Delete experience controller error', { 
+        expId: req.params.expId,
+        userId: req.params.id, 
+        error: error.message 
+      });
       res.status(500).json({
         success: false,
-        error: 'Failed to delete experience',
+        error: 'Internal server error',
       });
     }
   };
@@ -437,7 +499,6 @@ export class ProfileController {
       const requestingUserId = req.jwtPayload?.userId;
       const data: CreateEducationInput = req.body;
 
-      // Users can only add education to their own profile
       if (id !== requestingUserId) {
         res.status(403).json({
           success: false,
@@ -446,20 +507,29 @@ export class ProfileController {
         return;
       }
 
-      const education = await this.profileService.createEducation(id, data);
+      const result = await this.profileService.createEducation(id, data);
+
+      if (result.failure) {
+        res.status(400).json({
+          success: false,
+          error: result.error.message,
+        });
+        return;
+      }
 
       res.status(201).json({
         success: true,
         message: 'Education created successfully',
-        data: {
-          education,
-        },
+        data: result.data,
       });
     } catch (error) {
-      console.error('Create education error:', error);
+      console.error('Create education controller error', { 
+        userId: req.params.id, 
+        error: error.message 
+      });
       res.status(500).json({
         success: false,
-        error: 'Failed to create education',
+        error: 'Internal server error',
       });
     }
   };
@@ -473,7 +543,6 @@ export class ProfileController {
       const { id } = req.params;
       const requestingUserId = req.jwtPayload?.userId;
 
-      // Users can only view their own education
       if (id !== requestingUserId) {
         res.status(403).json({
           success: false,
@@ -482,19 +551,30 @@ export class ProfileController {
         return;
       }
 
-      const education = await this.profileService.getEducation(id);
+      const result = await this.profileService.getEducation(id);
+
+      if (result.failure) {
+        res.status(500).json({
+          success: false,
+          error: result.error.message,
+        });
+        return;
+      }
 
       res.status(200).json({
         success: true,
         data: {
-          education,
+          education: result.data,
         },
       });
     } catch (error) {
-      console.error('Get education error:', error);
+      console.error('Get education controller error', { 
+        userId: req.params.id, 
+        error: error.message 
+      });
       res.status(500).json({
         success: false,
-        error: 'Failed to get education',
+        error: 'Internal server error',
       });
     }
   };
@@ -509,7 +589,6 @@ export class ProfileController {
       const requestingUserId = req.jwtPayload?.userId;
       const data: UpdateEducationInput = req.body;
 
-      // Users can only update their own education
       if (id !== requestingUserId) {
         res.status(403).json({
           success: false,
@@ -518,12 +597,13 @@ export class ProfileController {
         return;
       }
 
-      const education = await this.profileService.updateEducation(eduId, id, data);
+      const result = await this.profileService.updateEducation(eduId, id, data);
 
-      if (!education) {
-        res.status(404).json({
+      if (result.failure) {
+        const statusCode = result.error.message.includes('not found') ? 404 : 400;
+        res.status(statusCode).json({
           success: false,
-          error: 'Education not found',
+          error: result.error.message,
         });
         return;
       }
@@ -531,15 +611,17 @@ export class ProfileController {
       res.status(200).json({
         success: true,
         message: 'Education updated successfully',
-        data: {
-          education,
-        },
+        data: result.data,
       });
     } catch (error) {
-      console.error('Update education error:', error);
+      console.error('Update education controller error', { 
+        eduId: req.params.eduId,
+        userId: req.params.id, 
+        error: error.message 
+      });
       res.status(500).json({
         success: false,
-        error: 'Failed to update education',
+        error: 'Internal server error',
       });
     }
   };
@@ -553,7 +635,6 @@ export class ProfileController {
       const { id, eduId } = req.params;
       const requestingUserId = req.jwtPayload?.userId;
 
-      // Users can only delete their own education
       if (id !== requestingUserId) {
         res.status(403).json({
           success: false,
@@ -562,12 +643,13 @@ export class ProfileController {
         return;
       }
 
-      const education = await this.profileService.deleteEducation(eduId, id);
+      const result = await this.profileService.deleteEducation(eduId, id);
 
-      if (!education) {
-        res.status(404).json({
+      if (result.failure) {
+        const statusCode = result.error.message.includes('not found') ? 404 : 400;
+        res.status(statusCode).json({
           success: false,
-          error: 'Education not found',
+          error: result.error.message,
         });
         return;
       }
@@ -577,10 +659,14 @@ export class ProfileController {
         message: 'Education deleted successfully',
       });
     } catch (error) {
-      console.error('Delete education error:', error);
+      console.error('Delete education controller error', { 
+        eduId: req.params.eduId,
+        userId: req.params.id, 
+        error: error.message 
+      });
       res.status(500).json({
         success: false,
-        error: 'Failed to delete education',
+        error: 'Internal server error',
       });
     }
   };
@@ -595,7 +681,6 @@ export class ProfileController {
       const requestingUserId = req.jwtPayload?.userId;
       const data: CreateCareerGoalInput = req.body;
 
-      // Users can only add career goals to their own profile
       if (id !== requestingUserId) {
         res.status(403).json({
           success: false,
@@ -604,20 +689,29 @@ export class ProfileController {
         return;
       }
 
-      const careerGoal = await this.profileService.createCareerGoal(id, data);
+      const result = await this.profileService.createCareerGoal(id, data);
+
+      if (result.failure) {
+        res.status(400).json({
+          success: false,
+          error: result.error.message,
+        });
+        return;
+      }
 
       res.status(201).json({
         success: true,
         message: 'Career goal created successfully',
-        data: {
-          careerGoal,
-        },
+        data: result.data,
       });
     } catch (error) {
-      console.error('Create career goal error:', error);
+      console.error('Create career goal controller error', { 
+        userId: req.params.id, 
+        error: error.message 
+      });
       res.status(500).json({
         success: false,
-        error: 'Failed to create career goal',
+        error: 'Internal server error',
       });
     }
   };
@@ -631,7 +725,6 @@ export class ProfileController {
       const { id } = req.params;
       const requestingUserId = req.jwtPayload?.userId;
 
-      // Users can only view their own career goals
       if (id !== requestingUserId) {
         res.status(403).json({
           success: false,
@@ -640,19 +733,30 @@ export class ProfileController {
         return;
       }
 
-      const careerGoals = await this.profileService.getCareerGoals(id);
+      const result = await this.profileService.getCareerGoals(id);
+
+      if (result.failure) {
+        res.status(500).json({
+          success: false,
+          error: result.error.message,
+        });
+        return;
+      }
 
       res.status(200).json({
         success: true,
         data: {
-          careerGoals,
+          careerGoals: result.data,
         },
       });
     } catch (error) {
-      console.error('Get career goals error:', error);
+      console.error('Get career goals controller error', { 
+        userId: req.params.id, 
+        error: error.message 
+      });
       res.status(500).json({
         success: false,
-        error: 'Failed to get career goals',
+        error: 'Internal server error',
       });
     }
   };
@@ -667,7 +771,6 @@ export class ProfileController {
       const requestingUserId = req.jwtPayload?.userId;
       const data: UpdateCareerGoalInput = req.body;
 
-      // Users can only update their own career goals
       if (id !== requestingUserId) {
         res.status(403).json({
           success: false,
@@ -676,12 +779,13 @@ export class ProfileController {
         return;
       }
 
-      const careerGoal = await this.profileService.updateCareerGoal(goalId, id, data);
+      const result = await this.profileService.updateCareerGoal(goalId, id, data);
 
-      if (!careerGoal) {
-        res.status(404).json({
+      if (result.failure) {
+        const statusCode = result.error.message.includes('not found') ? 404 : 400;
+        res.status(statusCode).json({
           success: false,
-          error: 'Career goal not found',
+          error: result.error.message,
         });
         return;
       }
@@ -689,15 +793,17 @@ export class ProfileController {
       res.status(200).json({
         success: true,
         message: 'Career goal updated successfully',
-        data: {
-          careerGoal,
-        },
+        data: result.data,
       });
     } catch (error) {
-      console.error('Update career goal error:', error);
+      console.error('Update career goal controller error', { 
+        goalId: req.params.goalId,
+        userId: req.params.id, 
+        error: error.message 
+      });
       res.status(500).json({
         success: false,
-        error: 'Failed to update career goal',
+        error: 'Internal server error',
       });
     }
   };
@@ -711,7 +817,6 @@ export class ProfileController {
       const { id, goalId } = req.params;
       const requestingUserId = req.jwtPayload?.userId;
 
-      // Users can only delete their own career goals
       if (id !== requestingUserId) {
         res.status(403).json({
           success: false,
@@ -720,12 +825,13 @@ export class ProfileController {
         return;
       }
 
-      const careerGoal = await this.profileService.deleteCareerGoal(goalId, id);
+      const result = await this.profileService.deleteCareerGoal(goalId, id);
 
-      if (!careerGoal) {
-        res.status(404).json({
+      if (result.failure) {
+        const statusCode = result.error.message.includes('not found') ? 404 : 400;
+        res.status(statusCode).json({
           success: false,
-          error: 'Career goal not found',
+          error: result.error.message,
         });
         return;
       }
@@ -735,10 +841,14 @@ export class ProfileController {
         message: 'Career goal deleted successfully',
       });
     } catch (error) {
-      console.error('Delete career goal error:', error);
+      console.error('Delete career goal controller error', { 
+        goalId: req.params.goalId,
+        userId: req.params.id, 
+        error: error.message 
+      });
       res.status(500).json({
         success: false,
-        error: 'Failed to delete career goal',
+        error: 'Internal server error',
       });
     }
   };

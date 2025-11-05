@@ -5,14 +5,16 @@
     "rootDir": "./src",
     "module": "commonjs",
     "target": "ES2022",
-    "types": ["node", "vitest/globals", "vitest"],
+    "types": ["node", "vitest/globals", "vitest", "reflect-metadata"],
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "allowSyntheticDefaultImports": true,
     "strict": true,
     "noImplicitAny": false,
-    "strictNullChecks": true
+    "strictNullChecks": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"],

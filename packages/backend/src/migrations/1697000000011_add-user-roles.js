@@ -2,36 +2,34 @@
  * Migration: Add user roles and permissions
  */
 
-exports.up = async function (knex) {
+exports.up = function (pgm) {
   // Create roles enum type
-  await knex.raw(`
-    DO $$ BEGIN
-      CREATE TYPE user_role AS ENUM ('user', 'admin', 'moderator');
-    EXCEPTION
-      WHEN duplicate_object THEN null;
-    END $$;
-  `);
+  pgm.createType('user_role', ['user', 'admin', 'moderator']);
 
   // Add role column to users table
-  await knex.schema.table('users', (table) => {
-    table.specificType('role', 'user_role').defaultTo('user').notNullable();
-    table.jsonb('permissions').defaultTo('[]');
+  pgm.addColumn('users', {
+    role: {
+      type: 'user_role',
+      notNull: true,
+      default: 'user'
+    },
+    permissions: {
+      type: 'jsonb',
+      default: '[]'
+    }
   });
 
   // Create index on role for faster queries
-  await knex.raw('CREATE INDEX idx_users_role ON users(role)');
+  pgm.createIndex('users', 'role', { name: 'idx_users_role' });
 };
 
-exports.down = async function (knex) {
+exports.down = function (pgm) {
   // Remove index
-  await knex.raw('DROP INDEX IF EXISTS idx_users_role');
+  pgm.dropIndex('users', 'role', { name: 'idx_users_role' });
 
   // Remove columns
-  await knex.schema.table('users', (table) => {
-    table.dropColumn('role');
-    table.dropColumn('permissions');
-  });
+  pgm.dropColumn('users', ['role', 'permissions']);
 
   // Drop enum type
-  await knex.raw('DROP TYPE IF EXISTS user_role');
+  pgm.dropType('user_role');
 };

@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS users (
   profile_completed BOOLEAN DEFAULT FALSE,
   role VARCHAR(50) DEFAULT 'user',
   status VARCHAR(50) DEFAULT 'active',
+  is_active BOOLEAN DEFAULT TRUE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   last_login TIMESTAMP
@@ -173,7 +174,7 @@ CREATE TABLE IF NOT EXISTS job_alerts (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Refresh tokens table
+-- Refresh tokens table (legacy - kept for backward compatibility)
 CREATE TABLE IF NOT EXISTS refresh_tokens (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID REFERENCES users(id) ON DELETE CASCADE,
@@ -181,6 +182,16 @@ CREATE TABLE IF NOT EXISTS refresh_tokens (
   expires_at TIMESTAMP NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   revoked BOOLEAN DEFAULT FALSE
+);
+
+-- Password reset tokens table
+CREATE TABLE IF NOT EXISTS password_reset_tokens (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  token VARCHAR(500) UNIQUE NOT NULL,
+  expires_at TIMESTAMP NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  used BOOLEAN DEFAULT FALSE
 );
 
 -- Audit logs table
@@ -213,6 +224,9 @@ CREATE INDEX IF NOT EXISTS idx_documents_user_id ON documents(user_id);
 CREATE INDEX IF NOT EXISTS idx_job_alerts_user_id ON job_alerts(user_id);
 CREATE INDEX IF NOT EXISTS idx_refresh_tokens_user_id ON refresh_tokens(user_id);
 CREATE INDEX IF NOT EXISTS idx_refresh_tokens_token ON refresh_tokens(token);
+CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_user_id ON password_reset_tokens(user_id);
+CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_token ON password_reset_tokens(token);
+CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_expires_at ON password_reset_tokens(expires_at);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_user_id ON audit_logs(user_id);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON audit_logs(created_at DESC);
 
@@ -220,5 +234,5 @@ CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON audit_logs(created_at DE
 DO $$
 BEGIN
   RAISE NOTICE 'GiveMeJobs database setup completed successfully!';
-  RAISE NOTICE 'Tables created: users, oauth_accounts, skills, work_experience, education, jobs, saved_jobs, applications, documents, job_alerts, refresh_tokens, audit_logs';
+  RAISE NOTICE 'Tables created: users, oauth_accounts, skills, work_experience, education, jobs, saved_jobs, applications, documents, job_alerts, refresh_tokens, password_reset_tokens, audit_logs';
 END $$;

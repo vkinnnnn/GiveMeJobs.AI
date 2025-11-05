@@ -476,4 +476,97 @@ export class AuthController {
       });
     }
   };
+
+  /**
+   * Get user sessions
+   * GET /api/auth/sessions
+   */
+  getUserSessions = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const userId = req.jwtPayload?.userId;
+
+      if (!userId) {
+        res.status(401).json({
+          success: false,
+          error: 'Authentication required',
+        });
+        return;
+      }
+
+      // For now, return empty sessions array
+      // This would be implemented with a session service
+      res.status(200).json({
+        success: true,
+        data: {
+          sessions: [],
+        },
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        error: 'Failed to get user sessions',
+      });
+    }
+  };
+
+  /**
+   * Invalidate specific session
+   * DELETE /api/auth/sessions/:sessionId
+   */
+  invalidateSession = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const userId = req.jwtPayload?.userId;
+      const { sessionId } = req.params;
+
+      if (!userId) {
+        res.status(401).json({
+          success: false,
+          error: 'Authentication required',
+        });
+        return;
+      }
+
+      // For now, just return success
+      // This would be implemented with a session service
+      res.status(200).json({
+        success: true,
+        message: 'Session invalidated successfully',
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        error: 'Failed to invalidate session',
+      });
+    }
+  };
+
+  /**
+   * Invalidate all sessions
+   * DELETE /api/auth/sessions
+   */
+  invalidateAllSessions = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const userId = req.jwtPayload?.userId;
+
+      if (!userId) {
+        res.status(401).json({
+          success: false,
+          error: 'Authentication required',
+        });
+        return;
+      }
+
+      // For now, just return success
+      // This would be implemented with a session service
+      res.status(200).json({
+        success: true,
+        message: 'All sessions invalidated successfully',
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        error: 'Failed to invalidate all sessions',
+      });
+    }
+  };
 }

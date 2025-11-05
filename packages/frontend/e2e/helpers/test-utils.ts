@@ -156,7 +156,8 @@ export async function mockApiResponse(
  */
 export async function getElementText(page: Page, selector: string): Promise<string> {
   await page.waitForSelector(selector);
-  return page.textContent(selector) || '';
+  const text = await page.textContent(selector);
+  return text || '';
 }
 
 /**

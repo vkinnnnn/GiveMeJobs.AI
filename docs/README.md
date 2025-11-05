@@ -24,6 +24,11 @@ Welcome to the GiveMeJobs platform documentation. This directory contains all th
 - [Service Architecture](./architecture/SERVICE_ARCHITECTURE.md) - Microservices breakdown
 - [Security Architecture](./architecture/SECURITY.md) - Security implementation
 
+### Authentication & Security
+- [Authentication Guide](AUTHENTICATION_GUIDE.md) - Complete authentication setup and configuration
+- [Enhanced Auth Configuration](ENHANCED_AUTH_CONFIG.md) - Advanced authentication features and setup
+- [Security Audit Checklist](SECURITY_AUDIT_CHECKLIST.md) - Security best practices and audit procedures
+
 ### Operations
 - [Monitoring Guide](./operations/MONITORING.md) - Monitoring and observability
 - [Troubleshooting](./operations/TROUBLESHOOTING.md) - Common issues and solutions

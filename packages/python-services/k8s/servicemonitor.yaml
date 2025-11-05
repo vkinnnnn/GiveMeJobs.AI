@@ -1,0 +1,162 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: givemejobs-python-backend-monitor
+  namespace: givemejobs
+  labels:
+    app: givemejobs-python-backend
+    component: backend
+    prometheus: kube-prometheus
+spec:
+  selector:
+    matchLabels:
+      app: givemejobs-python-backend
+      component: backend
+  endpoints:
+  - port: metrics
+    path: /metrics
+    interval: 30s
+    scrapeTimeout: 10s
+    honorLabels: true
+    metricRelabelings:
+    - sourceLabels: [__name__]
+      regex: 'http_requests_total|http_request_duration_seconds.*|http_requests_per_second|response_time_p95|concurrent_requests|active_connections'
+      action: keep
+    - sourceLabels: [__name__]
+      regex: 'celery_queue_length|celery_workers_active|redis_connections_active|db_connections_active'
+      action: keep
+    - sourceLabels: [__name__]
+      regex: 'ai_requests_total|ai_request_duration_seconds.*|ai_queue_length'
+      action: keep
+  namespaceSelector:
+    matchNames:
+    - givemejobs
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: givemejobs-celery-worker-monitor
+  namespace: givemejobs
+  labels:
+    app: givemejobs-celery-worker
+    component: worker
+    prometheus: kube-prometheus
+spec:
+  selector:
+    matchLabels:
+      app: givemejobs-celery-worker
+      component: worker
+  endpoints:
+  - port: metrics
+    path: /metrics
+    interval: 30s
+    scrapeTimeout: 10s
+    honorLabels: true
+    metricRelabelings:
+    - sourceLabels: [__name__]
+      regex: 'celery_tasks_total|celery_task_duration_seconds.*|celery_queue_length|celery_workers_active'
+      action: keep
+    - sourceLabels: [__name__]
+      regex: 'redis_connections_active|db_connections_active'
+      action: keep
+  namespaceSelector:
+    matchNames:
+    - givemejobs
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: givemejobs-python-backend-rules
+  namespace: givemejobs
+  labels:
+    app: givemejobs-python-backend
+    prometheus: kube-prometheus
+spec:
+  groups:
+  - name: givemejobs.python.backend
+    interval: 30s
+    rules:
+    # HTTP Request Rate
+    - record: givemejobs:http_requests_per_second
+      expr: rate(http_requests_total{app="givemejobs-python-backend"}[1m])
+    
+    # Response Time P95
+    - record: givemejobs:response_time_p95
+      expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{app="givemejobs-python-backend"}[5m])) * 1000
+    
+    # Error Rate
+    - record: givemejobs:error_rate
+      expr: rate(http_requests_total{app="givemejobs-python-backend",status_code=~"5.."}[5m]) / rate(http_requests_total{app="givemejobs-python-backend"}[5m])
+    
+    # Queue Length Average
+    - record: givemejobs:celery_queue_length_avg
+      expr: avg(celery_queue_length{app="givemejobs-celery-worker"})
+    
+    # Database Connection Utilization
+    - record: givemejobs:db_connection_utilization
+      expr: db_connections_active{app="givemejobs-python-backend"} / (db_connections_active{app="givemejobs-python-backend"} + db_connections_idle{app="givemejobs-python-backend"})
+    
+    # Redis Connection Utilization
+    - record: givemejobs:redis_connection_utilization
+      expr: redis_connections_active{app="givemejobs-python-backend"} / 50  # Assuming max 50 connections
+    
+    # AI Request Success Rate
+    - record: givemejobs:ai_success_rate
+      expr: rate(ai_requests_total{app="givemejobs-python-backend",status="success"}[5m]) / rate(ai_requests_total{app="givemejobs-python-backend"}[5m])
+    
+  - name: givemejobs.python.alerts
+    rules:
+    # High Response Time Alert
+    - alert: HighResponseTime
+      expr: givemejobs:response_time_p95 > 2000
+      for: 2m
+      labels:
+        severity: warning
+        service: givemejobs-python-backend
+      annotations:
+        summary: "High response time detected"
+        description: "95th percentile response time is {{ $value }}ms, which is above the 2000ms threshold"
+    
+    # High Error Rate Alert
+    - alert: HighErrorRate
+      expr: givemejobs:error_rate > 0.05
+      for: 1m
+      labels:
+        severity: critical
+        service: givemejobs-python-backend
+      annotations:
+        summary: "High error rate detected"
+        description: "Error rate is {{ $value | humanizePercentage }}, which is above the 5% threshold"
+    
+    # High Queue Length Alert
+    - alert: HighQueueLength
+      expr: givemejobs:celery_queue_length_avg > 100
+      for: 5m
+      labels:
+        severity: warning
+        service: givemejobs-celery-worker
+      annotations:
+        summary: "High Celery queue length"
+        description: "Average queue length is {{ $value }}, which is above the 100 threshold"
+    
+    # Database Connection Exhaustion Alert
+    - alert: DatabaseConnectionExhaustion
+      expr: givemejobs:db_connection_utilization > 0.9
+      for: 2m
+      labels:
+        severity: critical
+        service: givemejobs-python-backend
+      annotations:
+        summary: "Database connection pool nearly exhausted"
+        description: "Database connection utilization is {{ $value | humanizePercentage }}"
+    
+    # AI Service Failure Alert
+    - alert: AIServiceFailure
+      expr: givemejobs:ai_success_rate < 0.8
+      for: 3m
+      labels:
+        severity: warning
+        service: givemejobs-python-backend
+      annotations:
+        summary: "AI service success rate is low"
+        description: "AI service success rate is {{ $value | humanizePercentage }}, which is below 80%"

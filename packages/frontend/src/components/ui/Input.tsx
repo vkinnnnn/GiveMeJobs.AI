@@ -26,7 +26,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     },
     ref
   ) => {
-    const { fieldId, errorId, descriptionId, fieldProps, errorProps, descriptionProps } =
+    const { fieldId, fieldProps, errorProps, descriptionProps } =
       useFormField({
         error,
         description,

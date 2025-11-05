@@ -1,0 +1,155 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: givemejobs-python-backend
+  namespace: givemejobs
+  labels:
+    app: givemejobs-python-backend
+    version: v1
+    component: backend
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: givemejobs-python-backend
+  template:
+    metadata:
+      labels:
+        app: givemejobs-python-backend
+        version: v1
+        component: backend
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8001"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+      - name: python-backend
+        image: givemejobs/python-backend:latest
+        ports:
+        - containerPort: 8000
+          name: http
+          protocol: TCP
+        - containerPort: 8001
+          name: metrics
+          protocol: TCP
+        env:
+        - name: ENVIRONMENT
+          value: "production"
+        - name: API_HOST
+          value: "0.0.0.0"
+        - name: API_PORT
+          value: "8000"
+        - name: DB_URL
+          valueFrom:
+            secretKeyRef:
+              name: database-secret
+              key: url
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: redis-secret
+              key: url
+        - name: AI_OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: ai-secret
+              key: openai-api-key
+        - name: AI_PINECONE_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: ai-secret
+              key: pinecone-api-key
+        - name: AI_PINECONE_ENVIRONMENT
+          valueFrom:
+            secretKeyRef:
+              name: ai-secret
+              key: pinecone-environment
+        - name: MONITORING_SENTRY_DSN
+          valueFrom:
+            secretKeyRef:
+              name: monitoring-secret
+              key: sentry-dsn
+        - name: CDN_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: cdn-secret
+              key: api-key
+        - name: CDN_BASE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: cdn-base-url
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /api/v1/health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /api/v1/health/ready
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        startupProbe:
+          httpGet:
+            path: /api/v1/health
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 30
+      imagePullSecrets:
+      - name: registry-secret
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: givemejobs-python-backend-service
+  namespace: givemejobs
+  labels:
+    app: givemejobs-python-backend
+    component: backend
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8001"
+    prometheus.io/path: "/metrics"
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8000
+    targetPort: 8000
+    protocol: TCP
+    name: http
+  - port: 8001
+    targetPort: 8001
+    protocol: TCP
+    name: metrics
+  selector:
+    app: givemejobs-python-backend
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: givemejobs
+data:
+  cdn-base-url: "https://cdn.givemejobs.ai"
+  api-prefix: "/api/v1"
+  cors-origins: "https://givemejobs.ai,https://www.givemejobs.ai"
+  log-level: "INFO"
+  prometheus-metrics-port: "8001"

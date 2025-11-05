@@ -1,0 +1,91 @@
+name: Parallel Test Execution
+
+on:
+  workflow_call:
+    inputs:
+      test-type:
+        required: true
+        type: string
+      python-version:
+        required: false
+        type: string
+        default: '3.11'
+
+jobs:
+  parallel-tests:
+    name: ${{ inputs.test-type }} Tests (Parallel)
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        test-chunk: [1, 2, 3, 4]
+      fail-fast: false
+    
+    defaults:
+      run:
+        working-directory: packages/python-services
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db_${{ matrix.test-chunk }}
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - ${{ 5432 + matrix.test-chunk - 1 }}:5432
+      
+      redis:
+        image: redis:7
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - ${{ 6379 + matrix.test-chunk - 1 }}:6379
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ inputs.python-version }}
+        cache: 'pip'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements-dev.txt
+        pip install pytest-xdist
+    
+    - name: Run parallel tests
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:${{ 5432 + matrix.test-chunk - 1 }}/test_db_${{ matrix.test-chunk }}
+        REDIS_URL: redis://localhost:${{ 6379 + matrix.test-chunk - 1 }}/0
+        TESTING: true
+        TEST_CHUNK: ${{ matrix.test-chunk }}
+      run: |
+        # Split tests into chunks
+        pytest tests/${{ inputs.test-type }}/ \
+          --dist=loadscope \
+          --tx=auto \
+          --cov=app \
+          --cov-report=xml:coverage-${{ matrix.test-chunk }}.xml \
+          --junitxml=junit-${{ inputs.test-type }}-${{ matrix.test-chunk }}.xml \
+          -v
+    
+    - name: Upload test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: ${{ inputs.test-type }}-test-results-chunk-${{ matrix.test-chunk }}
+        path: |
+          packages/python-services/junit-${{ inputs.test-type }}-${{ matrix.test-chunk }}.xml
+          packages/python-services/coverage-${{ matrix.test-chunk }}.xml

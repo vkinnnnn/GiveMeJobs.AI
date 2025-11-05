@@ -1,0 +1,141 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: givemejobs-celery-worker
+  namespace: givemejobs
+  labels:
+    app: givemejobs-celery-worker
+    version: v1
+    component: worker
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: givemejobs-celery-worker
+  template:
+    metadata:
+      labels:
+        app: givemejobs-celery-worker
+        version: v1
+        component: worker
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8002"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+      - name: celery-worker
+        image: givemejobs/python-backend:latest
+        command: ["celery"]
+        args: [
+          "-A", "app.worker",
+          "worker",
+          "--loglevel=info",
+          "--concurrency=4",
+          "--prefetch-multiplier=1",
+          "--queues=job_processing,document_processing,analytics"
+        ]
+        ports:
+        - containerPort: 8002
+          name: metrics
+          protocol: TCP
+        env:
+        - name: ENVIRONMENT
+          value: "production"
+        - name: CELERY_BROKER_URL
+          valueFrom:
+            secretKeyRef:
+              name: redis-secret
+              key: celery-broker-url
+        - name: CELERY_RESULT_BACKEND
+          valueFrom:
+            secretKeyRef:
+              name: redis-secret
+              key: celery-result-backend
+        - name: DB_URL
+          valueFrom:
+            secretKeyRef:
+              name: database-secret
+              key: url
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: redis-secret
+              key: url
+        - name: AI_OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: ai-secret
+              key: openai-api-key
+        - name: AI_PINECONE_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: ai-secret
+              key: pinecone-api-key
+        - name: AI_PINECONE_ENVIRONMENT
+          valueFrom:
+            secretKeyRef:
+              name: ai-secret
+              key: pinecone-environment
+        - name: MONITORING_SENTRY_DSN
+          valueFrom:
+            secretKeyRef:
+              name: monitoring-secret
+              key: sentry-dsn
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        livenessProbe:
+          exec:
+            command:
+            - celery
+            - -A
+            - app.worker
+            - inspect
+            - ping
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          exec:
+            command:
+            - celery
+            - -A
+            - app.worker
+            - inspect
+            - active
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+      imagePullSecrets:
+      - name: registry-secret
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 60
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: givemejobs-celery-worker-service
+  namespace: givemejobs
+  labels:
+    app: givemejobs-celery-worker
+    component: worker
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8002"
+    prometheus.io/path: "/metrics"
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8002
+    targetPort: 8002
+    protocol: TCP
+    name: metrics
+  selector:
+    app: givemejobs-celery-worker

@@ -1,0 +1,536 @@
+# Production Environment Values for GiveMeJobs Helm Chart
+
+# Global configuration
+global:
+  imageRegistry: "ghcr.io"
+  imagePullSecrets: []
+  storageClass: "gp3"
+
+# Application configuration
+app:
+  name: givemejobs
+  environment: production
+  domain: givemejobs.ai
+
+# Image configuration
+images:
+  backend:
+    repository: ghcr.io/givemejobs/platform/backend
+    tag: latest
+    pullPolicy: IfNotPresent
+  frontend:
+    repository: ghcr.io/givemejobs/platform/frontend
+    tag: latest
+    pullPolicy: IfNotPresent
+  pythonServices:
+    repository: ghcr.io/givemejobs/platform/python-services
+    tag: latest
+    pullPolicy: IfNotPresent
+  celeryWorker:
+    repository: ghcr.io/givemejobs/platform/celery-worker
+    tag: latest
+    pullPolicy: IfNotPresent
+
+# Backend service configuration
+backend:
+  enabled: true
+  replicaCount: 3
+  service:
+    type: ClusterIP
+    port: 4000
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+  env:
+    NODE_ENV: production
+    LOG_LEVEL: info
+    RATE_LIMIT_ENABLED: "true"
+
+# Frontend service configuration
+frontend:
+  enabled: true
+  replicaCount: 3
+  service:
+    type: ClusterIP
+    port: 3000
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 8
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+  env:
+    NEXT_PUBLIC_API_URL: "https://api.givemejobs.ai"
+    NEXT_PUBLIC_APP_ENV: production
+    NEXT_TELEMETRY_DISABLED: "1"
+
+# Python AI/ML services configuration
+pythonServices:
+  enabled: true
+  replicaCount: 2
+  service:
+    type: ClusterIP
+    port: 8000
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: 2000m
+      memory: 4Gi
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 6
+    targetCPUUtilizationPercentage: 75
+    targetMemoryUtilizationPercentage: 85
+  env:
+    FASTAPI_ENV: production
+    LOG_LEVEL: info
+
+# Celery worker configuration
+celeryWorker:
+  enabled: true
+  replicaCount: 2
+  resources:
+    requests:
+      cpu: 300m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 8
+    targetCPUUtilizationPercentage: 80
+    targetMemoryUtilizationPercentage: 85
+
+# Nginx reverse proxy configuration
+nginx:
+  enabled: true
+  replicaCount: 2
+  service:
+    type: LoadBalancer
+    port: 80
+    httpsPort: 443
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+# Database configurations (production-sized)
+postgresql:
+  enabled: true
+  auth:
+    existingSecret: "postgresql-credentials"
+    secretKeys:
+      adminPasswordKey: "postgres-password"
+      userPasswordKey: "password"
+    username: givemejobs
+    database: givemejobs_db
+  primary:
+    persistence:
+      enabled: true
+      size: 100Gi
+      storageClass: "gp3"
+    resources:
+      requests:
+        cpu: 500m
+        memory: 1Gi
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+    configuration: |
+      # PostgreSQL production configuration
+      max_connections = 200
+      shared_buffers = 1GB
+      effective_cache_size = 3GB
+      maintenance_work_mem = 256MB
+      checkpoint_completion_target = 0.9
+      wal_buffers = 16MB
+      default_statistics_target = 100
+      random_page_cost = 1.1
+      effective_io_concurrency = 200
+      work_mem = 4MB
+      min_wal_size = 1GB
+      max_wal_size = 4GB
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+
+mongodb:
+  enabled: true
+  auth:
+    enabled: true
+    existingSecret: "mongodb-credentials"
+    usernames: ["givemejobs"]
+    databases: ["givemejobs_docs"]
+  architecture: replicaset
+  replicaCount: 3
+  persistence:
+    enabled: true
+    size: 100Gi
+    storageClass: "gp3"
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: 2000m
+      memory: 4Gi
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+
+redis:
+  enabled: true
+  auth:
+    enabled: true
+    existingSecret: "redis-credentials"
+    existingSecretPasswordKey: "password"
+  architecture: replication
+  master:
+    persistence:
+      enabled: true
+      size: 20Gi
+      storageClass: "gp3"
+    resources:
+      requests:
+        cpu: 200m
+        memory: 256Mi
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+  replica:
+    replicaCount: 2
+    persistence:
+      enabled: true
+      size: 20Gi
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+
+# Monitoring configuration (full production setup)
+monitoring:
+  prometheus:
+    enabled: true
+    server:
+      persistentVolume:
+        enabled: true
+        size: 50Gi
+        storageClass: "gp3"
+      resources:
+        requests:
+          cpu: 500m
+          memory: 2Gi
+        limits:
+          cpu: 2000m
+          memory: 8Gi
+      retention: "30d"
+    alertmanager:
+      enabled: true
+      persistentVolume:
+        enabled: true
+        size: 10Gi
+      resources:
+        requests:
+          cpu: 100m
+          memory: 128Mi
+        limits:
+          cpu: 500m
+          memory: 512Mi
+  grafana:
+    enabled: true
+    persistence:
+      enabled: true
+      size: 20Gi
+      storageClass: "gp3"
+    resources:
+      requests:
+        cpu: 200m
+        memory: 256Mi
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+    adminPassword: "secure_grafana_password"
+  jaeger:
+    enabled: true
+    storage:
+      type: elasticsearch
+    elasticsearch:
+      enabled: true
+
+# Security configuration (production hardening)
+security:
+  networkPolicies:
+    enabled: true
+  podSecurityPolicy:
+    enabled: true
+  rbac:
+    create: true
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1001
+    fsGroup: 1001
+    seccompProfile:
+      type: RuntimeDefault
+
+# Ingress configuration (production SSL)
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/hsts: "true"
+    nginx.ingress.kubernetes.io/hsts-max-age: "31536000"
+    nginx.ingress.kubernetes.io/hsts-include-subdomains: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+    nginx.ingress.kubernetes.io/rate-limit-window: "1m"
+  hosts:
+    - host: givemejobs.ai
+      paths:
+        - path: /
+          pathType: Prefix
+          service: frontend
+    - host: api.givemejobs.ai
+      paths:
+        - path: /
+          pathType: Prefix
+          service: backend
+    - host: ai.givemejobs.ai
+      paths:
+        - path: /
+          pathType: Prefix
+          service: python-services
+  tls:
+    - secretName: givemejobs-tls
+      hosts:
+        - givemejobs.ai
+        - api.givemejobs.ai
+        - ai.givemejobs.ai
+
+# Service mesh (production Istio setup)
+serviceMesh:
+  enabled: true
+  istio:
+    enabled: true
+    gateway:
+      enabled: true
+    virtualService:
+      enabled: true
+    destinationRule:
+      enabled: true
+    peerAuthentication:
+      enabled: true
+      mtls: STRICT
+
+# External secrets (production secret management)
+externalSecrets:
+  enabled: true
+  secretStore:
+    provider: aws
+    region: us-east-1
+    auth:
+      secretRef:
+        accessKeyID:
+          name: "aws-credentials"
+          key: "access-key-id"
+        secretAccessKey:
+          name: "aws-credentials"
+          key: "secret-access-key"
+
+# Backup configuration (production schedule)
+backup:
+  enabled: true
+  schedule: "0 2 * * *"  # Daily at 2 AM
+  retention: "30d"
+  crossRegionReplication: true
+  storage:
+    type: s3
+    bucket: givemejobs-production-backups
+    region: us-east-1
+    encryption: AES256
+
+# Production environment variables
+environmentVariables:
+  # External service URLs (production endpoints)
+  OPENAI_API_BASE_URL: "https://api.openai.com/v1"
+  PINECONE_ENVIRONMENT: "production"
+  SENTRY_ENVIRONMENT: "production"
+  
+  # Feature flags for production
+  FEATURE_AI_RESUME_GENERATION: "true"
+  FEATURE_SEMANTIC_SEARCH: "true"
+  FEATURE_ADVANCED_ANALYTICS: "true"
+  FEATURE_BACKGROUND_JOBS: "true"
+  
+  # Production settings
+  DEBUG_MODE: "false"
+  MOCK_EXTERNAL_APIS: "false"
+  ENABLE_TEST_ENDPOINTS: "false"
+  LOG_SQL_QUERIES: "false"
+  
+  # Performance settings
+  MAX_WORKERS: "4"
+  CACHE_TTL: "3600"
+  REQUEST_TIMEOUT: "30"
+
+# Production secrets (managed via external secret management)
+secrets:
+  # These should reference external secret management system
+  externalSecretRefs:
+    postgres_password:
+      secretStore: "aws-secrets-manager"
+      key: "givemejobs/production/postgres"
+      property: "password"
+    mongodb_password:
+      secretStore: "aws-secrets-manager"
+      key: "givemejobs/production/mongodb"
+      property: "password"
+    redis_password:
+      secretStore: "aws-secrets-manager"
+      key: "givemejobs/production/redis"
+      property: "password"
+    jwt_secret:
+      secretStore: "aws-secrets-manager"
+      key: "givemejobs/production/jwt"
+      property: "secret"
+    openai_api_key:
+      secretStore: "aws-secrets-manager"
+      key: "givemejobs/production/openai"
+      property: "api_key"
+
+# Node selectors and tolerations for production workloads
+nodeSelector:
+  node-type: "production"
+  instance-type: "compute-optimized"
+
+tolerations:
+  - key: "production"
+    operator: "Equal"
+    value: "true"
+    effect: "NoSchedule"
+
+# Pod disruption budgets (strict for production)
+podDisruptionBudget:
+  enabled: true
+  minAvailable: "50%"  # Ensure high availability
+
+# Resource quotas for production namespace
+resourceQuota:
+  enabled: true
+  hard:
+    requests.cpu: "16"
+    requests.memory: 32Gi
+    limits.cpu: "32"
+    limits.memory: 64Gi
+    persistentvolumeclaims: "20"
+    services: "20"
+    secrets: "20"
+
+# Horizontal Pod Autoscaler settings (production tuned)
+hpa:
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300  # Conservative scaling down
+      policies:
+      - type: Percent
+        value: 10
+        periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Percent
+        value: 50
+        periodSeconds: 60
+      - type: Pods
+        value: 2
+        periodSeconds: 60
+      selectPolicy: Max
+
+# Production-specific pod security standards
+podSecurityStandards:
+  enforceLevel: "restricted"
+  auditLevel: "restricted"
+  warnLevel: "restricted"
+
+# Network policies for production isolation
+networkPolicies:
+  defaultDeny: true
+  allowedIngress:
+    - from:
+      - namespaceSelector:
+          matchLabels:
+            name: ingress-nginx
+    - from:
+      - namespaceSelector:
+          matchLabels:
+            name: monitoring
+  allowedEgress:
+    - to: []
+      ports:
+      - protocol: TCP
+        port: 53
+      - protocol: UDP
+        port: 53
+    - to:
+      - namespaceSelector:
+          matchLabels:
+            name: kube-system
+
+# Production alerting configuration
+alerting:
+  enabled: true
+  rules:
+    - name: "high-error-rate"
+      threshold: 5
+      duration: "5m"
+    - name: "high-response-time"
+      threshold: 2
+      duration: "5m"
+    - name: "pod-restart-loop"
+      threshold: 5
+      duration: "15m"
+  notifications:
+    slack:
+      enabled: true
+      channel: "#production-alerts"
+    pagerduty:
+      enabled: true
+      integrationKey: "production-integration-key"
+    email:
+      enabled: true
+      recipients: ["oncall@givemejobs.ai"]

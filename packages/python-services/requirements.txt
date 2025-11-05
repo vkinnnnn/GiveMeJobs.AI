@@ -1,0 +1,104 @@
+# Base Requirements for GiveMeJobs Python Services
+# Python-centric architecture with FastAPI, Pydantic v2, and async support
+
+# Core Framework
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic==2.5.0
+pydantic-settings==2.1.0
+
+# Database (Async SQLAlchemy 2.0)
+sqlalchemy[asyncio]==2.0.23
+asyncpg==0.29.0
+alembic==1.13.1
+
+# Caching & Background Tasks
+redis[hiredis]==5.0.1
+celery==5.3.4
+kombu==5.3.4
+
+# Authentication & Security
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+python-multipart==0.0.6
+cryptography==41.0.8
+fastapi-users[sqlalchemy]==12.1.2
+fastapi-users[redis]==12.1.2
+pyotp==2.9.0
+qrcode[pil]==7.4.2
+
+# HTTP Client & API
+httpx==0.25.2
+aiofiles==23.2.1
+
+# Logging & Monitoring
+structlog==23.2.0
+opentelemetry-api==1.21.0
+opentelemetry-sdk==1.21.0
+opentelemetry-instrumentation-fastapi==0.42b0
+opentelemetry-exporter-jaeger==1.21.0
+prometheus-client==0.19.0
+sentry-sdk[fastapi]==1.38.0
+
+# Data Processing
+pandas==2.1.4
+numpy==1.25.2
+polars==0.19.19
+
+# AI/ML Libraries
+openai==1.3.7
+langchain==0.0.350
+langchain-openai==0.0.2
+pinecone-client==2.2.4
+scikit-learn==1.3.2
+joblib==1.3.2
+
+# Document Processing
+pypdf2==3.0.1
+python-docx==1.1.0
+jinja2==3.1.2
+bleach==6.1.0
+
+# CDN & Asset Optimization
+pillow==10.1.0
+cssmin==0.2.0
+jsmin==3.0.1
+brotli==1.1.0
+boto3==1.34.0
+botocore==1.34.0
+
+# Validation & Serialization
+email-validator==2.1.0
+python-dateutil==2.8.2
+
+# Rate Limiting
+slowapi==0.1.9
+
+# Input Validation & Security
+bleach==6.1.0
+html5lib==1.1
+defusedxml==0.7.1
+validators==0.22.0
+python-magic==0.4.27
+pydantic-extra-types==2.1.0
+
+# Testing
+pytest==7.4.3
+pytest-asyncio==0.21.1
+pytest-mock==3.12.0
+pytest-cov==4.1.0
+pytest-postgresql==5.0.0
+pytest-redis==3.0.2
+httpx==0.25.2
+
+# Development Tools
+black==23.11.0
+isort==5.12.0
+flake8==6.1.0
+mypy==1.7.1
+bandit==1.7.5
+safety==2.3.5
+pre-commit==3.6.0
+
+# Performance Testing
+locust==2.17.0

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useJobsStore } from '@/stores/jobs.store';
 import { useRouter } from 'next/navigation';
-import { Job } from '@/../../shared-types/src/job';
+
 
 export default function JobsPage() {
   const router = useRouter();

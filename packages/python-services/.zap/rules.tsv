@@ -1,0 +1,65 @@
+# ZAP Scanning Rules Configuration
+# Format: RULE_ID	THRESHOLD	[COMMENT]
+
+# Ignore rules for development/testing
+10021	OFF	# X-Content-Type-Options header missing (dev environment)
+10020	OFF	# X-Frame-Options header missing (dev environment)
+10016	OFF	# Web Browser XSS Protection Not Enabled (dev environment)
+
+# High priority security rules
+40012	HIGH	# Cross Site Scripting (Reflected)
+40014	HIGH	# Cross Site Scripting (Persistent)
+40018	HIGH	# SQL Injection
+40019	HIGH	# SQL Injection - MySQL
+40020	HIGH	# SQL Injection - Hypersonic SQL
+40021	HIGH	# SQL Injection - Oracle
+40022	HIGH	# SQL Injection - PostgreSQL
+90019	HIGH	# Server Side Code Injection
+90020	HIGH	# Remote OS Command Injection
+
+# Medium priority rules
+10015	MEDIUM	# Incomplete or No Cache-control and Pragma HTTP Header Set
+10017	MEDIUM	# Cross-Domain JavaScript Source File Inclusion
+10019	MEDIUM	# Content-Type Header Missing
+10023	MEDIUM	# Information Disclosure - Debug Error Messages
+10024	MEDIUM	# Information Disclosure - Sensitive Information in URL
+10025	MEDIUM	# Information Disclosure - Sensitive Information in HTTP Referrer Header
+
+# Authentication and session management
+10027	HIGH	# Information Disclosure - Suspicious Comments
+10028	MEDIUM	# Open Redirect
+10029	MEDIUM	# Cookie Poisoning
+10030	MEDIUM	# User Controllable Charset
+10031	MEDIUM	# User Controllable HTML Element Attribute (Potential XSS)
+
+# OWASP Top 10 related rules
+40013	HIGH	# Session Fixation
+40016	HIGH	# Cross Site Scripting (Persistent) - Prime
+40017	HIGH	# Cross Site Scripting (Persistent) - Spider
+40023	MEDIUM	# Possible Username Enumeration
+40024	MEDIUM	# SQL Injection - SQLite
+40025	MEDIUM	# Proxy Disclosure
+40026	MEDIUM	# Cross Site Scripting (DOM Based)
+40027	MEDIUM	# SQL Injection - MsSQL
+40028	MEDIUM	# CRLF Injection
+
+# Custom rules for API security
+90001	HIGH	# Insecure HTTP Method
+90002	MEDIUM	# Private IP Disclosure
+90003	MEDIUM	# Sub Resource Integrity Attribute Missing
+90004	MEDIUM	# Insufficient Site Isolation Against Spectre Vulnerability
+90005	MEDIUM	# Secure Pages Include Mixed Content
+90006	MEDIUM	# Charset Mismatch
+90011	MEDIUM	# Charset Mismatch (Header Versus Meta Content-Type Charset)
+90017	MEDIUM	# XSLT Injection
+90018	MEDIUM	# SQL Injection - Hypersonic SQL (Time Based)
+90022	MEDIUM	# Application Error Disclosure
+90023	MEDIUM	# XML External Entity Attack
+90024	MEDIUM	# Generic Padding Oracle
+90025	MEDIUM	# Expression Language Injection
+90026	MEDIUM	# SOAP Action Spoofing
+90027	MEDIUM	# Cookie Slack Detector
+90028	MEDIUM	# Insecure JSF ViewState
+90029	MEDIUM	# LDAP Injection
+90030	MEDIUM	# WSDL File Detection
+90033	MEDIUM	# Loosely Scoped Cookie

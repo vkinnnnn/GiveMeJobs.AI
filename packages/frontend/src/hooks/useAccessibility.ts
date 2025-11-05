@@ -9,7 +9,6 @@ import {
   announceToScreenReader,
   generateId,
   prefersReducedMotion,
-  RovingTabIndexManager,
 } from '@/lib/accessibility';
 
 /**

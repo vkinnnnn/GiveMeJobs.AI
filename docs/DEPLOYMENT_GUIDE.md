@@ -26,7 +26,7 @@ This guide provides step-by-step instructions for deploying the GiveMeJobs platf
 - [ ] Environment variables configured
 - [ ] Secrets created in Kubernetes
 - [ ] Database migrations ready
-- [ ] API keys obtained
+- [ ] API keys obtained (see .env.mcp.template for complete list)
 - [ ] OAuth credentials configured
 
 ### Infrastructure

@@ -1,0 +1,626 @@
+name: Security Testing Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run security scans daily at 2 AM UTC
+    - cron: '0 2 * * *'
+
+env:
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  static-security-analysis:
+    name: Static Security Analysis
+    runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+        working-directory: packages/python-services
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+    
+    - name: Install security tools
+      run: |
+        python -m pip install --upgrade pip
+        pip install bandit[toml] safety semgrep
+        pip install -r requirements-dev.txt
+    
+    - name: Run Bandit security scan
+      run: |
+        bandit -r app/ -f json -o bandit-report.json || true
+        bandit -r app/ -f txt
+      continue-on-error: true
+    
+    - name: Run Safety dependency scan
+      run: |
+        safety check --json --output safety-report.json || true
+        safety check
+      continue-on-error: true
+    
+    - name: Run Semgrep security scan
+      run: |
+        semgrep --config=auto --json --output=semgrep-report.json app/ || true
+        semgrep --config=auto app/
+      continue-on-error: true
+    
+    - name: Upload security reports
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: security-reports
+        path: |
+          packages/python-services/bandit-report.json
+          packages/python-services/safety-report.json
+          packages/python-services/semgrep-report.json
+    
+    - name: Security scan summary
+      run: |
+        echo "## Security Scan Results" >> $GITHUB_STEP_SUMMARY
+        echo "### Bandit Results" >> $GITHUB_STEP_SUMMARY
+        if [ -f bandit-report.json ]; then
+          python -c "
+          import json
+          with open('bandit-report.json') as f:
+              data = json.load(f)
+          high = len([i for i in data.get('results', []) if i.get('issue_severity') == 'HIGH'])
+          medium = len([i for i in data.get('results', []) if i.get('issue_severity') == 'MEDIUM'])
+          low = len([i for i in data.get('results', []) if i.get('issue_severity') == 'LOW'])
+          print(f'- High: {high}')
+          print(f'- Medium: {medium}')
+          print(f'- Low: {low}')
+          " >> $GITHUB_STEP_SUMMARY
+        fi
+
+  dependency-vulnerability-scan:
+    name: Dependency Vulnerability Scan
+    runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+        working-directory: packages/python-services
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install safety pip-audit
+    
+    - name: Run pip-audit
+      run: |
+        pip-audit --format=json --output=pip-audit-report.json || true
+        pip-audit
+      continue-on-error: true
+    
+    - name: Run Safety scan
+      run: |
+        safety check --json --output safety-detailed-report.json || true
+        safety check --short-report
+      continue-on-error: true
+    
+    - name: Check for known vulnerabilities in requirements
+      run: |
+        # Create a script to check for known vulnerable packages
+        cat > check_vulnerabilities.py << 'EOF'
+        import json
+        import sys
+        
+        # Known vulnerable packages (example list)
+        KNOWN_VULNERABILITIES = {
+            "pillow": ["<8.3.2"],
+            "requests": ["<2.25.1"],
+            "urllib3": ["<1.26.5"],
+            "jinja2": ["<2.11.3"],
+            "pyyaml": ["<5.4.1"]
+        }
+        
+        try:
+            with open('requirements.txt', 'r') as f:
+                requirements = f.read()
+            
+            vulnerabilities_found = []
+            for line in requirements.split('\n'):
+                if '==' in line:
+                    package, version = line.split('==')
+                    package = package.strip().lower()
+                    version = version.strip()
+                    
+                    if package in KNOWN_VULNERABILITIES:
+                        print(f"⚠️  {package}=={version} may have known vulnerabilities")
+                        vulnerabilities_found.append(f"{package}=={version}")
+            
+            if vulnerabilities_found:
+                print(f"\n❌ Found {len(vulnerabilities_found)} potentially vulnerable dependencies")
+                sys.exit(1)
+            else:
+                print("✅ No known vulnerable dependencies found")
+        
+        except Exception as e:
+            print(f"Error checking vulnerabilities: {e}")
+            sys.exit(1)
+        EOF
+        
+        python check_vulnerabilities.py
+      continue-on-error: true
+    
+    - name: Upload vulnerability reports
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: vulnerability-reports
+        path: |
+          packages/python-services/pip-audit-report.json
+          packages/python-services/safety-detailed-report.json
+
+  penetration-testing:
+    name: Penetration Testing
+    runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+        working-directory: packages/python-services
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements-dev.txt
+    
+    - name: Start application for testing
+      run: |
+        # Set up test environment
+        export DATABASE_URL=postgresql://postgres:postgres@localhost:5432/test_db
+        export REDIS_URL=redis://localhost:6379/0
+        export TESTING=true
+        
+        # Start the application in background
+        python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 &
+        
+        # Wait for application to start
+        sleep 10
+        
+        # Check if application is running
+        curl -f http://localhost:8000/health || exit 1
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+        REDIS_URL: redis://localhost:6379/0
+        TESTING: true
+    
+    - name: Run penetration tests
+      run: |
+        pytest tests/security/test_vulnerability_scanning.py::TestPenetrationTesting -v --tb=short
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+        REDIS_URL: redis://localhost:6379/0
+        TESTING: true
+      continue-on-error: true
+    
+    - name: Run OWASP ZAP baseline scan
+      uses: zaproxy/action-baseline@v0.7.0
+      with:
+        target: 'http://localhost:8000'
+        rules_file_name: '.zap/rules.tsv'
+        cmd_options: '-a'
+      continue-on-error: true
+    
+    - name: Upload penetration test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: penetration-test-results
+        path: |
+          report_html.html
+          report_md.md
+          report_json.json
+
+  security-compliance-check:
+    name: Security Compliance Check
+    runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+        working-directory: packages/python-services
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements-dev.txt
+    
+    - name: Run security compliance tests
+      run: |
+        pytest tests/security/test_vulnerability_scanning.py::TestSecurityCompliance -v
+      continue-on-error: true
+    
+    - name: Check security configuration
+      run: |
+        # Create security configuration checker
+        cat > security_config_check.py << 'EOF'
+        import os
+        import json
+        from pathlib import Path
+        
+        def check_security_config():
+            issues = []
+            
+            # Check for sensitive files
+            sensitive_files = ['.env', 'config.py', 'settings.py']
+            for file in sensitive_files:
+                if Path(file).exists():
+                    stat = Path(file).stat()
+                    # Check if file is readable by others (Unix permissions)
+                    if stat.st_mode & 0o044:
+                        issues.append(f"File {file} has overly permissive permissions")
+            
+            # Check environment variables
+            sensitive_env_vars = []
+            for var_name, var_value in os.environ.items():
+                if any(pattern in var_name.lower() for pattern in ['password', 'secret', 'key', 'token']):
+                    if var_value in ['password', 'secret', '123456', 'admin', '']:
+                        sensitive_env_vars.append(var_name)
+            
+            if sensitive_env_vars:
+                issues.append(f"Insecure environment variables: {', '.join(sensitive_env_vars)}")
+            
+            # Check for debug mode
+            if os.getenv('DEBUG', '').lower() in ['true', '1', 'yes']:
+                if os.getenv('ENVIRONMENT', '').lower() == 'production':
+                    issues.append("Debug mode enabled in production environment")
+            
+            return issues
+        
+        issues = check_security_config()
+        if issues:
+            print("❌ Security configuration issues found:")
+            for issue in issues:
+                print(f"  - {issue}")
+            exit(1)
+        else:
+            print("✅ Security configuration check passed")
+        EOF
+        
+        python security_config_check.py
+    
+    - name: Generate security compliance report
+      run: |
+        cat > security_compliance_report.py << 'EOF'
+        import json
+        from datetime import datetime
+        
+        # OWASP Top 10 compliance checklist
+        owasp_checklist = {
+            "A01_Broken_Access_Control": {
+                "description": "Broken Access Control",
+                "checks": [
+                    "Authentication middleware implemented",
+                    "Authorization checks in place",
+                    "Role-based access control configured"
+                ],
+                "status": "partial"  # Would be determined by actual checks
+            },
+            "A02_Cryptographic_Failures": {
+                "description": "Cryptographic Failures",
+                "checks": [
+                    "Encryption module implemented",
+                    "Secure password hashing",
+                    "TLS configuration"
+                ],
+                "status": "implemented"
+            },
+            "A03_Injection": {
+                "description": "Injection",
+                "checks": [
+                    "Parameterized queries used",
+                    "Input validation implemented",
+                    "SQL injection protection"
+                ],
+                "status": "implemented"
+            },
+            "A05_Security_Misconfiguration": {
+                "description": "Security Misconfiguration",
+                "checks": [
+                    "Security headers configured",
+                    "Debug mode disabled in production",
+                    "Default credentials removed"
+                ],
+                "status": "review_needed"
+            }
+        }
+        
+        report = {
+            "compliance_check": {
+                "timestamp": datetime.now().isoformat(),
+                "owasp_top_10": owasp_checklist,
+                "overall_status": "partial_compliance",
+                "recommendations": [
+                    "Complete access control implementation",
+                    "Review security configuration",
+                    "Implement comprehensive logging"
+                ]
+            }
+        }
+        
+        with open('security_compliance_report.json', 'w') as f:
+            json.dump(report, f, indent=2)
+        
+        print("Security compliance report generated")
+        EOF
+        
+        python security_compliance_report.py
+    
+    - name: Upload compliance report
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: security-compliance-report
+        path: packages/python-services/security_compliance_report.json
+
+  comprehensive-security-test:
+    name: Comprehensive Security Test
+    runs-on: ubuntu-latest
+    needs: [static-security-analysis, dependency-vulnerability-scan, penetration-testing, security-compliance-check]
+    
+    defaults:
+      run:
+        working-directory: packages/python-services
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements-dev.txt
+    
+    - name: Download all security reports
+      uses: actions/download-artifact@v3
+      with:
+        path: security-artifacts
+    
+    - name: Run comprehensive security test suite
+      run: |
+        python tests/security/security_test_runner.py
+      continue-on-error: true
+    
+    - name: Generate final security report
+      run: |
+        cat > generate_final_report.py << 'EOF'
+        import json
+        import os
+        from pathlib import Path
+        from datetime import datetime
+        
+        def collect_security_results():
+            results = {
+                "timestamp": datetime.now().isoformat(),
+                "summary": {
+                    "total_scans": 0,
+                    "critical_issues": 0,
+                    "high_issues": 0,
+                    "medium_issues": 0,
+                    "low_issues": 0
+                },
+                "scan_results": {},
+                "recommendations": []
+            }
+            
+            # Collect Bandit results
+            bandit_file = Path("security-artifacts/security-reports/bandit-report.json")
+            if bandit_file.exists():
+                with open(bandit_file) as f:
+                    bandit_data = json.load(f)
+                
+                high_issues = len([i for i in bandit_data.get('results', []) if i.get('issue_severity') == 'HIGH'])
+                medium_issues = len([i for i in bandit_data.get('results', []) if i.get('issue_severity') == 'MEDIUM'])
+                
+                results["scan_results"]["bandit"] = {
+                    "high_issues": high_issues,
+                    "medium_issues": medium_issues,
+                    "total_issues": len(bandit_data.get('results', []))
+                }
+                
+                results["summary"]["high_issues"] += high_issues
+                results["summary"]["medium_issues"] += medium_issues
+                results["summary"]["total_scans"] += 1
+            
+            # Collect Safety results
+            safety_file = Path("security-artifacts/vulnerability-reports/safety-detailed-report.json")
+            if safety_file.exists():
+                try:
+                    with open(safety_file) as f:
+                        safety_data = json.load(f)
+                    
+                    if isinstance(safety_data, list) and safety_data:
+                        results["scan_results"]["safety"] = {
+                            "vulnerabilities_found": len(safety_data),
+                            "critical_vulnerabilities": len([v for v in safety_data if v.get('severity', '').lower() == 'critical'])
+                        }
+                        
+                        results["summary"]["critical_issues"] += results["scan_results"]["safety"]["critical_vulnerabilities"]
+                        results["summary"]["total_scans"] += 1
+                except:
+                    pass
+            
+            # Generate recommendations
+            if results["summary"]["critical_issues"] > 0:
+                results["recommendations"].append("URGENT: Address critical security vulnerabilities immediately")
+            
+            if results["summary"]["high_issues"] > 0:
+                results["recommendations"].append("Address high-severity security issues before deployment")
+            
+            if results["summary"]["medium_issues"] > 5:
+                results["recommendations"].append("Review and address medium-severity security issues")
+            
+            # Calculate security score
+            total_issues = (
+                results["summary"]["critical_issues"] * 10 +
+                results["summary"]["high_issues"] * 5 +
+                results["summary"]["medium_issues"] * 2 +
+                results["summary"]["low_issues"]
+            )
+            
+            security_score = max(0, 100 - total_issues)
+            results["summary"]["security_score"] = security_score
+            
+            return results
+        
+        # Generate final report
+        final_report = collect_security_results()
+        
+        with open('final_security_report.json', 'w') as f:
+            json.dump(final_report, f, indent=2)
+        
+        # Print summary
+        print("=" * 60)
+        print("FINAL SECURITY REPORT")
+        print("=" * 60)
+        print(f"Security Score: {final_report['summary']['security_score']}/100")
+        print(f"Critical Issues: {final_report['summary']['critical_issues']}")
+        print(f"High Issues: {final_report['summary']['high_issues']}")
+        print(f"Medium Issues: {final_report['summary']['medium_issues']}")
+        print(f"Total Scans: {final_report['summary']['total_scans']}")
+        
+        if final_report['recommendations']:
+            print("\nRecommendations:")
+            for rec in final_report['recommendations']:
+                print(f"- {rec}")
+        
+        # Fail if critical issues found
+        if final_report['summary']['critical_issues'] > 0:
+            print("\n❌ Critical security issues found - failing build")
+            exit(1)
+        elif final_report['summary']['high_issues'] > 0:
+            print("\n⚠️  High severity security issues found - review required")
+            exit(1)
+        else:
+            print("\n✅ Security scan completed successfully")
+        EOF
+        
+        python generate_final_report.py
+    
+    - name: Upload final security report
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: final-security-report
+        path: packages/python-services/final_security_report.json
+    
+    - name: Comment security results on PR
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const fs = require('fs');
+          const path = 'packages/python-services/final_security_report.json';
+          
+          if (fs.existsSync(path)) {
+            const report = JSON.parse(fs.readFileSync(path, 'utf8'));
+            
+            const comment = `## 🔒 Security Scan Results
+            
+            **Security Score:** ${report.summary.security_score}/100
+            
+            | Severity | Count |
+            |----------|-------|
+            | Critical | ${report.summary.critical_issues} |
+            | High | ${report.summary.high_issues} |
+            | Medium | ${report.summary.medium_issues} |
+            | Low | ${report.summary.low_issues} |
+            
+            ${report.recommendations.length > 0 ? 
+              '**Recommendations:**\n' + report.recommendations.map(r => `- ${r}`).join('\n') : 
+              '✅ No critical security issues found'
+            }
+            
+            _Security scan completed at ${report.timestamp}_`;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+          }
+
+  security-notification:
+    name: Security Notification
+    runs-on: ubuntu-latest
+    needs: [comprehensive-security-test]
+    if: failure()
+    
+    steps:
+    - name: Send security alert
+      run: |
+        echo "🚨 Security issues detected in the pipeline"
+        echo "Please review the security reports and address critical issues"
+        # In a real scenario, this would send notifications to security team

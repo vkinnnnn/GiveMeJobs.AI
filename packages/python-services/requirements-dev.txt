@@ -1,0 +1,51 @@
+# Development Requirements for GiveMeJobs Python Services
+# Use this file for local development (especially Windows)
+
+# Include production requirements
+-r requirements-prod.txt
+
+# Development Tools
+black==23.12.0
+flake8==6.1.0
+mypy==1.7.1
+isort==5.13.2
+pylint==3.0.3
+
+# Testing Tools
+pytest==7.4.3
+pytest-asyncio==0.21.1
+pytest-cov==4.1.0
+pytest-mock==3.12.0
+pytest-postgresql==5.0.0
+pytest-redis==3.0.2
+pytest-xdist==3.5.0
+coverage==7.3.3
+
+# Integration Testing
+httpx==0.25.2
+pact-python==2.2.1
+
+# End-to-End Testing
+playwright==1.40.0
+pytest-playwright==0.4.3
+
+# Security Testing
+bandit==1.7.5
+safety==2.3.5
+semgrep==1.45.0
+pytest-security==0.1.0
+
+# Documentation
+mkdocs==1.5.3
+mkdocs-material==9.5.2
+
+# Debugging
+ipython==8.18.1
+ipdb==0.13.13
+
+# Type Checking
+types-redis==4.6.0.11
+types-requests==2.31.0.10
+
+# Code Quality
+pre-commit==3.6.0

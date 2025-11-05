@@ -178,7 +178,7 @@ export function PracticeMode({ question, onSubmit, onClose }: PracticeModeProps)
               <div className="flex-1">
                 <h4 className="text-sm font-semibold text-yellow-900 mb-1">Practice Tips:</h4>
                 <ul className="text-sm text-yellow-800 space-y-1">
-                  <li>• Speak naturally as if you're in a real interview</li>
+                  <li>• Speak naturally as if you&apos;re in a real interview</li>
                   <li>• Be specific with examples and quantify results when possible</li>
                   <li>• Keep your answer focused and concise (2-3 minutes)</li>
                   {question.category === 'behavioral' && (

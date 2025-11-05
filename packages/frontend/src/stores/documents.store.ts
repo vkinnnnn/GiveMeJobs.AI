@@ -72,7 +72,7 @@ interface DocumentsState {
   getTemplateById: (id: string) => Promise<DocumentTemplate>;
 }
 
-export const useDocumentsStore = create<DocumentsState>((set, get) => ({
+export const useDocumentsStore = create<DocumentsState>((set) => ({
   documents: [],
   templates: [],
   currentDocument: null,
@@ -178,16 +178,12 @@ export const useDocumentsStore = create<DocumentsState>((set, get) => ({
   },
 
   exportDocument: async (id: string, format: 'pdf' | 'docx' | 'txt') => {
-    try {
-      const response = await apiClient.post(
-        `/api/documents/${id}/export`,
-        { format },
-        { responseType: 'blob' }
-      );
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await apiClient.post(
+      `/api/documents/${id}/export`,
+      { format },
+      { responseType: 'blob' }
+    );
+    return response.data;
   },
 
   getTemplates: async () => {

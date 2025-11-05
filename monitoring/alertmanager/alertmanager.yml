@@ -1,0 +1,198 @@
+# Alertmanager Configuration for GiveMeJobs Platform
+global:
+  smtp_smarthost: 'smtp.resend.com:587'
+  smtp_from: 'alerts@givemejobs.ai'
+  smtp_auth_username: 'resend'
+  smtp_auth_password: '${RESEND_API_KEY}'
+  smtp_require_tls: true
+
+# Templates for notifications
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'
+
+# Route tree for alerts
+route:
+  group_by: ['alertname', 'cluster', 'service']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 1h
+  receiver: 'default'
+  routes:
+    # Critical alerts go to on-call immediately
+    - match:
+        severity: critical
+      receiver: 'critical-alerts'
+      group_wait: 0s
+      repeat_interval: 5m
+      routes:
+        # Database issues
+        - match:
+            team: database
+          receiver: 'database-team'
+        # Security issues
+        - match:
+            team: security
+          receiver: 'security-team'
+        # Application down
+        - match:
+            alertname: ApplicationDown
+          receiver: 'sre-team'
+
+    # Warning alerts
+    - match:
+        severity: warning
+      receiver: 'warning-alerts'
+      group_wait: 30s
+      repeat_interval: 2h
+      routes:
+        # AI/ML team alerts
+        - match:
+            team: ai-ml
+          receiver: 'ai-ml-team'
+        # Backend team alerts
+        - match:
+            team: backend
+          receiver: 'backend-team'
+
+    # Info alerts (low priority)
+    - match:
+        severity: info
+      receiver: 'info-alerts'
+      group_wait: 5m
+      repeat_interval: 24h
+
+# Inhibition rules to prevent spam
+inhibit_rules:
+  # Inhibit warning alerts if critical alert is firing
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'cluster', 'service']
+
+  # Inhibit ApplicationDown if HighErrorRate is firing
+  - source_match:
+      alertname: 'ApplicationDown'
+    target_match:
+      alertname: 'HighErrorRate'
+    equal: ['job']
+
+# Receivers configuration
+receivers:
+  # Default receiver
+  - name: 'default'
+    email_configs:
+      - to: 'devops@givemejobs.ai'
+        subject: '[GiveMeJobs] {{ .GroupLabels.alertname }} - {{ .Status | title }}'
+        body: |
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Labels: {{ range .Labels.SortedPairs }}{{ .Name }}={{ .Value }} {{ end }}
+          {{ end }}
+
+  # Critical alerts - immediate notification
+  - name: 'critical-alerts'
+    email_configs:
+      - to: 'oncall@givemejobs.ai'
+        subject: '🚨 CRITICAL: {{ .GroupLabels.alertname }}'
+        body: |
+          CRITICAL ALERT FIRED
+          
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Runbook: {{ .Annotations.runbook_url }}
+          Labels: {{ range .Labels.SortedPairs }}{{ .Name }}={{ .Value }} {{ end }}
+          Started: {{ .StartsAt }}
+          {{ end }}
+    slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL}'
+        channel: '#alerts-critical'
+        title: '🚨 Critical Alert: {{ .GroupLabels.alertname }}'
+        text: |
+          {{ range .Alerts }}
+          *{{ .Annotations.summary }}*
+          {{ .Annotations.description }}
+          
+          *Runbook:* {{ .Annotations.runbook_url }}
+          *Labels:* {{ range .Labels.SortedPairs }}`{{ .Name }}={{ .Value }}` {{ end }}
+          {{ end }}
+        send_resolved: true
+    pagerduty_configs:
+      - routing_key: '${PAGERDUTY_INTEGRATION_KEY}'
+        description: '{{ .GroupLabels.alertname }}: {{ .CommonAnnotations.summary }}'
+        details:
+          firing: '{{ .Alerts.Firing | len }}'
+          resolved: '{{ .Alerts.Resolved | len }}'
+          runbook_url: '{{ .CommonAnnotations.runbook_url }}'
+
+  # Warning alerts
+  - name: 'warning-alerts'
+    email_configs:
+      - to: 'devops@givemejobs.ai'
+        subject: '⚠️ WARNING: {{ .GroupLabels.alertname }}'
+        body: |
+          WARNING ALERT
+          
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Runbook: {{ .Annotations.runbook_url }}
+          {{ end }}
+    slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL}'
+        channel: '#alerts-warning'
+        title: '⚠️ Warning: {{ .GroupLabels.alertname }}'
+        text: |
+          {{ range .Alerts }}
+          {{ .Annotations.summary }}
+          {{ .Annotations.description }}
+          {{ end }}
+
+  # Team-specific receivers
+  - name: 'sre-team'
+    email_configs:
+      - to: 'sre@givemejobs.ai'
+        subject: '[SRE] {{ .GroupLabels.alertname }}'
+    slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL}'
+        channel: '#sre-alerts'
+
+  - name: 'database-team'
+    email_configs:
+      - to: 'database@givemejobs.ai'
+        subject: '[DATABASE] {{ .GroupLabels.alertname }}'
+    slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL}'
+        channel: '#database-alerts'
+
+  - name: 'security-team'
+    email_configs:
+      - to: 'security@givemejobs.ai'
+        subject: '[SECURITY] {{ .GroupLabels.alertname }}'
+    slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL}'
+        channel: '#security-alerts'
+
+  - name: 'ai-ml-team'
+    email_configs:
+      - to: 'ai-ml@givemejobs.ai'
+        subject: '[AI/ML] {{ .GroupLabels.alertname }}'
+    slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL}'
+        channel: '#ai-ml-alerts'
+
+  - name: 'backend-team'
+    email_configs:
+      - to: 'backend@givemejobs.ai'
+        subject: '[BACKEND] {{ .GroupLabels.alertname }}'
+    slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL}'
+        channel: '#backend-alerts'
+
+  - name: 'info-alerts'
+    email_configs:
+      - to: 'devops@givemejobs.ai'
+        subject: '[INFO] {{ .GroupLabels.alertname }}'
+        send_resolved: false

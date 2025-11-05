@@ -1,9 +1,18 @@
 import { pgPool } from '../config/database';
 import { redisClient } from '../config/redis-config';
 import dotenv from 'dotenv';
+import { generateTestToken } from './helpers/auth.helper';
 
-// Load test environment
+// Load test environment FIRST
 dotenv.config({ path: '.env.test' });
+
+// Ensure JWT configuration is loaded
+if (!process.env.JWT_SECRET) {
+  process.env.JWT_SECRET = 'test-secret-key-for-testing-only';
+}
+if (!process.env.JWT_REFRESH_SECRET) {
+  process.env.JWT_REFRESH_SECRET = 'test-refresh-secret-key';
+}
 
 /**
  * Test Setup
@@ -97,4 +106,18 @@ export const createTestUser = async (email?: string) => {
   } finally {
     client.release();
   }
+};
+
+/**
+ * Create a test user with authentication token
+ */
+export const createTestUserWithAuth = async (email?: string) => {
+  const user = await createTestUser(email);
+  const token = generateTestToken(user.id, user.email);
+  
+  return {
+    user,
+    token,
+    authHeader: `Bearer ${token}`,
+  };
 };

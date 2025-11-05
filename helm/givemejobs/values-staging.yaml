@@ -1,0 +1,363 @@
+# Staging Environment Values for GiveMeJobs Helm Chart
+
+# Global configuration
+global:
+  imageRegistry: "ghcr.io"
+  imagePullSecrets: []
+  storageClass: "gp3"
+
+# Application configuration
+app:
+  name: givemejobs-staging
+  environment: staging
+  domain: staging.givemejobs.ai
+
+# Image configuration
+images:
+  backend:
+    repository: ghcr.io/givemejobs/platform/backend
+    tag: develop
+    pullPolicy: Always
+  frontend:
+    repository: ghcr.io/givemejobs/platform/frontend
+    tag: develop
+    pullPolicy: Always
+  pythonServices:
+    repository: ghcr.io/givemejobs/platform/python-services
+    tag: develop
+    pullPolicy: Always
+  celeryWorker:
+    repository: ghcr.io/givemejobs/platform/celery-worker
+    tag: develop
+    pullPolicy: Always
+
+# Backend service configuration
+backend:
+  enabled: true
+  replicaCount: 2
+  service:
+    type: ClusterIP
+    port: 4000
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+  env:
+    NODE_ENV: staging
+    LOG_LEVEL: debug
+    RATE_LIMIT_ENABLED: "false"  # Disabled for testing
+
+# Frontend service configuration
+frontend:
+  enabled: true
+  replicaCount: 2
+  service:
+    type: ClusterIP
+    port: 3000
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 4
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+  env:
+    NEXT_PUBLIC_API_URL: "https://api-staging.givemejobs.ai"
+    NEXT_PUBLIC_APP_ENV: staging
+    NEXT_TELEMETRY_DISABLED: "1"
+
+# Python AI/ML services configuration
+pythonServices:
+  enabled: true
+  replicaCount: 1
+  service:
+    type: ClusterIP
+    port: 8000
+  resources:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+  autoscaling:
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 3
+    targetCPUUtilizationPercentage: 75
+    targetMemoryUtilizationPercentage: 85
+  env:
+    FASTAPI_ENV: staging
+    LOG_LEVEL: debug
+
+# Celery worker configuration
+celeryWorker:
+  enabled: true
+  replicaCount: 1
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+  autoscaling:
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 3
+    targetCPUUtilizationPercentage: 80
+    targetMemoryUtilizationPercentage: 85
+
+# Nginx reverse proxy configuration
+nginx:
+  enabled: true
+  replicaCount: 1
+  service:
+    type: LoadBalancer
+    port: 80
+    httpsPort: 443
+  resources:
+    requests:
+      cpu: 25m
+      memory: 32Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
+
+# Database configurations (smaller instances for staging)
+postgresql:
+  enabled: true
+  auth:
+    postgresPassword: "staging_postgres_password"
+    username: givemejobs
+    password: "staging_password"
+    database: givemejobs_staging_db
+  primary:
+    persistence:
+      enabled: true
+      size: 10Gi
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+
+mongodb:
+  enabled: true
+  auth:
+    enabled: true
+    rootUser: givemejobs
+    rootPassword: "staging_mongo_password"
+    usernames: ["givemejobs"]
+    passwords: ["staging_password"]
+    databases: ["givemejobs_staging_docs"]
+  persistence:
+    enabled: true
+    size: 10Gi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+redis:
+  enabled: true
+  auth:
+    enabled: true
+    password: "staging_redis_password"
+  master:
+    persistence:
+      enabled: true
+      size: 4Gi
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 200m
+        memory: 256Mi
+
+# Monitoring configuration (reduced for staging)
+monitoring:
+  prometheus:
+    enabled: true
+    server:
+      persistentVolume:
+        enabled: true
+        size: 10Gi
+      resources:
+        requests:
+          cpu: 100m
+          memory: 256Mi
+        limits:
+          cpu: 500m
+          memory: 1Gi
+  grafana:
+    enabled: true
+    persistence:
+      enabled: true
+      size: 5Gi
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 200m
+        memory: 256Mi
+
+# Security configuration
+security:
+  networkPolicies:
+    enabled: true
+  podSecurityPolicy:
+    enabled: true
+  rbac:
+    create: true
+
+# Ingress configuration
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"  # Allow HTTP for staging
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "false"
+    cert-manager.io/cluster-issuer: "letsencrypt-staging"
+  hosts:
+    - host: staging.givemejobs.ai
+      paths:
+        - path: /
+          pathType: Prefix
+          service: frontend
+    - host: api-staging.givemejobs.ai
+      paths:
+        - path: /
+          pathType: Prefix
+          service: backend
+    - host: ai-staging.givemejobs.ai
+      paths:
+        - path: /
+          pathType: Prefix
+          service: python-services
+  tls:
+    - secretName: staging-tls
+      hosts:
+        - staging.givemejobs.ai
+        - api-staging.givemejobs.ai
+        - ai-staging.givemejobs.ai
+
+# Service mesh (disabled for staging)
+serviceMesh:
+  enabled: false
+
+# External secrets (use staging values)
+externalSecrets:
+  enabled: false
+
+# Backup configuration (reduced frequency)
+backup:
+  enabled: true
+  schedule: "0 4 * * *"  # Daily at 4 AM
+  retention: "7d"  # Shorter retention for staging
+  storage:
+    type: s3
+    bucket: givemejobs-staging-backups
+    region: us-east-1
+
+# Development and testing features
+development:
+  debugMode: true
+  mockExternalServices: true
+  seedData: true
+  testUsers: true
+
+# Resource quotas for staging namespace
+resourceQuota:
+  enabled: true
+  hard:
+    requests.cpu: "4"
+    requests.memory: 8Gi
+    limits.cpu: "8"
+    limits.memory: 16Gi
+    persistentvolumeclaims: "10"
+
+# Horizontal Pod Autoscaler settings
+hpa:
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 60  # Faster scaling for testing
+    scaleUp:
+      stabilizationWindowSeconds: 30
+
+# Staging-specific environment variables
+environmentVariables:
+  # External service URLs (staging endpoints)
+  OPENAI_API_BASE_URL: "https://api.openai.com/v1"
+  PINECONE_ENVIRONMENT: "staging"
+  SENTRY_ENVIRONMENT: "staging"
+  
+  # Feature flags for staging
+  FEATURE_AI_RESUME_GENERATION: "true"
+  FEATURE_SEMANTIC_SEARCH: "true"
+  FEATURE_ADVANCED_ANALYTICS: "true"
+  FEATURE_BACKGROUND_JOBS: "true"
+  
+  # Debug and testing settings
+  DEBUG_MODE: "true"
+  MOCK_EXTERNAL_APIS: "false"
+  ENABLE_TEST_ENDPOINTS: "true"
+  LOG_SQL_QUERIES: "true"
+
+# Staging-specific secrets (these should be managed via external secret management)
+secrets:
+  # Database passwords (use weaker passwords for staging)
+  postgres_password: "staging_postgres_pass_123"
+  mongodb_password: "staging_mongo_pass_123"
+  redis_password: "staging_redis_pass_123"
+  
+  # JWT secrets (different from production)
+  jwt_secret: "staging_jwt_secret_key_for_testing_only"
+  jwt_refresh_secret: "staging_jwt_refresh_secret_key"
+  
+  # External API keys (use test/sandbox keys)
+  openai_api_key: "sk-test-staging-key"
+  pinecone_api_key: "staging-pinecone-key"
+  linkedin_client_id: "staging-linkedin-client-id"
+  linkedin_client_secret: "staging-linkedin-client-secret"
+  
+  # Monitoring and alerting
+  sentry_dsn: "https://staging-sentry-dsn@sentry.io/project"
+  slack_webhook_url: "https://hooks.slack.com/staging-webhook"
+
+# Node selectors and tolerations for staging workloads
+nodeSelector:
+  node-type: "staging"
+
+tolerations:
+  - key: "staging"
+    operator: "Equal"
+    value: "true"
+    effect: "NoSchedule"
+
+# Pod disruption budgets (more lenient for staging)
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1  # Allow more disruption in staging

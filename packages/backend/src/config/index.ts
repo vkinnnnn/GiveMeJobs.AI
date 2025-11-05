@@ -81,4 +81,24 @@ export const config = {
       password: process.env.ELASTICSEARCH_PASSWORD || '',
     },
   },
+  
+  // Python Services Configuration
+  pythonServices: {
+    mainBackend: {
+      url: process.env.PYTHON_BACKEND_URL || 'http://localhost:8000',
+      timeout: parseInt(process.env.PYTHON_BACKEND_TIMEOUT || '30000', 10),
+    },
+    documentService: {
+      url: process.env.PYTHON_DOCUMENT_SERVICE_URL || 'http://localhost:8001',
+      timeout: parseInt(process.env.PYTHON_DOCUMENT_SERVICE_TIMEOUT || '60000', 10),
+    },
+    analyticsService: {
+      url: process.env.PYTHON_ANALYTICS_SERVICE_URL || 'http://localhost:8002',
+      timeout: parseInt(process.env.PYTHON_ANALYTICS_SERVICE_TIMEOUT || '45000', 10),
+    },
+    semanticSearchService: {
+      url: process.env.PYTHON_SEMANTIC_SEARCH_SERVICE_URL || 'http://localhost:8003',
+      timeout: parseInt(process.env.PYTHON_SEMANTIC_SEARCH_SERVICE_TIMEOUT || '30000', 10),
+    },
+  },
 };

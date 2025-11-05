@@ -82,7 +82,7 @@ interface InterviewPrepState {
   analyzeResponse: (prepId: string, practiceId: string) => Promise<void>;
 }
 
-export const useInterviewPrepStore = create<InterviewPrepState>((set, get) => ({
+export const useInterviewPrepStore = create<InterviewPrepState>((set) => ({
   interviewPreps: [],
   currentPrep: null,
   practiceSessions: [],

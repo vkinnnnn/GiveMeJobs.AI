@@ -1,10 +1,8 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import request from 'supertest';
-import express from 'express';
-import jwt from 'jsonwebtoken';
-import { setupTestDatabase, teardownTestDatabase, cleanupTestData, createTestUser } from './setup';
+import { setupTestDatabase, teardownTestDatabase, cleanupTestData, createTestUserWithAuth } from './setup';
+import { createMinimalTestApp } from './helpers/test-app.helper';
 import profileRoutes from '../routes/profile.routes';
-import { config } from '../config';
 
 /**
  * Profile Service Integration Tests
@@ -12,13 +10,12 @@ import { config } from '../config';
  * Verifies data validation and error handling
  */
 
-// Create Express app for testing
-const app = express();
-app.use(express.json());
-app.use('/api/users', profileRoutes);
+// Create Express app for testing with proper auth middleware
+const app = createMinimalTestApp(profileRoutes, true);
 
 let testUser: any;
 let authToken: string;
+let authHeader: string;
 
 beforeAll(async () => {
   await setupTestDatabase();
@@ -30,22 +27,18 @@ afterAll(async () => {
 
 beforeEach(async () => {
   await cleanupTestData();
-  testUser = await createTestUser();
-  
-  // Generate JWT token for authentication
-  authToken = jwt.sign(
-    { userId: testUser.id, email: testUser.email },
-    config.jwt.secret,
-    { expiresIn: '1h' }
-  );
+  const testUserData = await createTestUserWithAuth();
+  testUser = testUserData.user;
+  authToken = testUserData.token;
+  authHeader = testUserData.authHeader;
 });
 
 describe('Profile Service Integration Tests', () => {
   describe('GET /api/users/:id/profile', () => {
     it('should get user profile successfully', async () => {
       const response = await request(app)
-        .get(`/api/users/${testUser.id}/profile`)
-        .set('Authorization', `Bearer ${authToken}`)
+        .get(`/${testUser.id}/profile`)
+        .set('Authorization', authHeader)
         .expect(200);
 
       expect(response.body.success).toBe(true);

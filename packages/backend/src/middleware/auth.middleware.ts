@@ -31,9 +31,20 @@ export function authenticate(req: Request, res: Response, next: NextFunction): v
     }
 
     const payload = verifyAccessToken(token);
+    
+    // Ensure payload has required fields
+    if (!payload.userId || !payload.email) {
+      throw new Error('Invalid token payload structure');
+    }
+    
     req.jwtPayload = payload;
     next();
   } catch (error) {
+    // Log error in development/test for debugging
+    if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
+      console.error('Auth middleware error:', error.message);
+    }
+    
     res.status(401).json({
       success: false,
       error: 'Invalid or expired token',

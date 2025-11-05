@@ -1,0 +1,674 @@
+name: Python Services Testing Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'packages/python-services/**'
+      - '.github/workflows/python-testing.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'packages/python-services/**'
+      - '.github/workflows/python-testing.yml'
+
+env:
+  PYTHON_VERSION: '3.11'
+  NODE_VERSION: '18'
+
+jobs:
+  # Code Quality and Linting
+  code-quality:
+    name: Code Quality & Linting
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/python-services
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements-dev.txt
+    
+    - name: Run Black formatting check
+      run: black --check --diff app/ tests/
+    
+    - name: Run isort import sorting check
+      run: isort --check-only --diff app/ tests/
+    
+    - name: Run flake8 linting
+      run: flake8 app/ tests/ --max-line-length=100 --extend-ignore=E203,W503
+    
+    - name: Run mypy type checking
+      run: mypy app/ --ignore-missing-imports --no-strict-optional
+    
+    - name: Upload code quality results
+      uses: actions/upload-artifact@v3
+      if: failure()
+      with:
+        name: code-quality-results
+        path: packages/python-services/.mypy_cache/
+
+  # Security Scanning
+  security-scan:
+    name: Security Scanning
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/python-services
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements-dev.txt
+    
+    - name: Run Bandit security scan
+      run: |
+        bandit -r app/ -f json -o bandit-report.json || true
+        bandit -r app/ -f txt
+      continue-on-error: true
+    
+    - name: Run Safety dependency scan
+      run: |
+        safety check --json --output safety-report.json || true
+        safety check
+      continue-on-error: true
+    
+    - name: Install Semgrep
+      run: pip install semgrep
+    
+    - name: Run Semgrep security scan
+      run: |
+        semgrep --config=auto --json --output=semgrep-report.json app/ || true
+        semgrep --config=auto app/
+      continue-on-error: true
+    
+    - name: Upload security scan results
+      uses: actions/upload-artifact@v3
+      with:
+        name: security-scan-results
+        path: |
+          packages/python-services/bandit-report.json
+          packages/python-services/safety-report.json
+          packages/python-services/semgrep-report.json
+
+  # Unit Tests
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/python-services
+    
+    strategy:
+      matrix:
+        python-version: ['3.10', '3.11', '3.12']
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: 'pip'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements-dev.txt
+    
+    - name: Run unit tests with coverage
+      run: |
+        pytest tests/unit/ \
+          --cov=app \
+          --cov-report=xml \
+          --cov-report=html \
+          --cov-report=term-missing \
+          --cov-fail-under=85 \
+          --junitxml=junit-unit.xml \
+          -v
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: packages/python-services/coverage.xml
+        flags: unit-tests
+        name: codecov-unit-${{ matrix.python-version }}
+    
+    - name: Upload test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: unit-test-results-${{ matrix.python-version }}
+        path: |
+          packages/python-services/junit-unit.xml
+          packages/python-services/htmlcov/
+
+  # Integration Tests
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/python-services
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements-dev.txt
+    
+    - name: Wait for services
+      run: |
+        sleep 10
+        pg_isready -h localhost -p 5432 -U postgres
+        redis-cli -h localhost -p 6379 ping
+    
+    - name: Run integration tests
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+        REDIS_URL: redis://localhost:6379/0
+        TESTING: true
+      run: |
+        pytest tests/integration/ \
+          --cov=app \
+          --cov-report=xml \
+          --cov-append \
+          --junitxml=junit-integration.xml \
+          -v
+    
+    - name: Upload integration test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: integration-test-results
+        path: |
+          packages/python-services/junit-integration.xml
+          packages/python-services/coverage.xml
+
+  # End-to-End Tests
+  e2e-tests:
+    name: End-to-End Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/python-services
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: packages/frontend/package-lock.json
+    
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements-dev.txt
+    
+    - name: Install Playwright
+      run: |
+        playwright install chromium firefox webkit
+        playwright install-deps
+    
+    - name: Install Frontend dependencies
+      working-directory: packages/frontend
+      run: npm ci
+    
+    - name: Start Python services
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+        REDIS_URL: redis://localhost:6379/0
+        TESTING: true
+      run: |
+        uvicorn app.main:app --host 0.0.0.0 --port 8000 &
+        sleep 10
+        curl -f http://localhost:8000/health || exit 1
+    
+    - name: Start Frontend application
+      working-directory: packages/frontend
+      env:
+        NEXT_PUBLIC_API_URL: http://localhost:8000
+      run: |
+        npm run build
+        npm start &
+        sleep 15
+        curl -f http://localhost:3000 || exit 1
+    
+    - name: Run E2E tests
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+        REDIS_URL: redis://localhost:6379/0
+        TESTING: true
+      run: |
+        pytest tests/e2e/ \
+          --junitxml=junit-e2e.xml \
+          --html=e2e-report.html \
+          --self-contained-html \
+          -v
+    
+    - name: Upload E2E test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: e2e-test-results
+        path: |
+          packages/python-services/junit-e2e.xml
+          packages/python-services/e2e-report.html
+          packages/python-services/test-results/
+
+  # Performance Tests
+  performance-tests:
+    name: Performance Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/python-services
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements-dev.txt
+    
+    - name: Start Python services
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+        REDIS_URL: redis://localhost:6379/0
+        TESTING: true
+      run: |
+        uvicorn app.main:app --host 0.0.0.0 --port 8000 &
+        sleep 10
+        curl -f http://localhost:8000/health || exit 1
+    
+    - name: Run performance regression tests
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+        REDIS_URL: redis://localhost:6379/0
+        TESTING: true
+      run: |
+        pytest tests/performance/test_performance_regression.py \
+          --junitxml=junit-performance.xml \
+          -v
+    
+    - name: Run Locust load tests
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+        REDIS_URL: redis://localhost:6379/0
+        TESTING: true
+      run: |
+        locust -f tests/performance/locustfile.py \
+          --host=http://localhost:8000 \
+          --users=10 \
+          --spawn-rate=2 \
+          --run-time=60s \
+          --html=locust-report.html \
+          --headless
+    
+    - name: Upload performance test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: performance-test-results
+        path: |
+          packages/python-services/junit-performance.xml
+          packages/python-services/locust-report.html
+          packages/python-services/performance_results/
+
+  # Security Tests
+  security-tests:
+    name: Security Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/python-services
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements-dev.txt
+    
+    - name: Start Python services
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+        REDIS_URL: redis://localhost:6379/0
+        TESTING: true
+      run: |
+        uvicorn app.main:app --host 0.0.0.0 --port 8000 &
+        sleep 10
+        curl -f http://localhost:8000/health || exit 1
+    
+    - name: Run security tests
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+        REDIS_URL: redis://localhost:6379/0
+        TESTING: true
+      run: |
+        pytest tests/security/ \
+          --junitxml=junit-security.xml \
+          -v
+    
+    - name: Run comprehensive security scan
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+        REDIS_URL: redis://localhost:6379/0
+        TESTING: true
+      run: |
+        python tests/security/security_test_runner.py
+    
+    - name: Upload security test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: security-test-results
+        path: |
+          packages/python-services/junit-security.xml
+          packages/python-services/security_test_results/
+
+  # Test Results Summary
+  test-summary:
+    name: Test Results Summary
+    runs-on: ubuntu-latest
+    needs: [code-quality, security-scan, unit-tests, integration-tests, e2e-tests, performance-tests, security-tests]
+    if: always()
+    
+    steps:
+    - name: Download all test artifacts
+      uses: actions/download-artifact@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install report dependencies
+      run: |
+        pip install junitparser pytest-html
+    
+    - name: Generate test summary report
+      run: |
+        python -c "
+        import json
+        import os
+        from pathlib import Path
+        
+        # Collect all test results
+        results = {
+            'code_quality': '${{ needs.code-quality.result }}',
+            'security_scan': '${{ needs.security-scan.result }}',
+            'unit_tests': '${{ needs.unit-tests.result }}',
+            'integration_tests': '${{ needs.integration-tests.result }}',
+            'e2e_tests': '${{ needs.e2e-tests.result }}',
+            'performance_tests': '${{ needs.performance-tests.result }}',
+            'security_tests': '${{ needs.security-tests.result }}'
+        }
+        
+        # Calculate summary
+        total_jobs = len(results)
+        passed_jobs = sum(1 for result in results.values() if result == 'success')
+        failed_jobs = sum(1 for result in results.values() if result == 'failure')
+        
+        summary = {
+            'total_jobs': total_jobs,
+            'passed_jobs': passed_jobs,
+            'failed_jobs': failed_jobs,
+            'success_rate': (passed_jobs / total_jobs) * 100,
+            'results': results
+        }
+        
+        with open('test_summary.json', 'w') as f:
+            json.dump(summary, f, indent=2)
+        
+        print(f'Test Summary:')
+        print(f'Total Jobs: {total_jobs}')
+        print(f'Passed: {passed_jobs}')
+        print(f'Failed: {failed_jobs}')
+        print(f'Success Rate: {summary[\"success_rate\"]:.1f}%')
+        "
+    
+    - name: Upload test summary
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-summary
+        path: test_summary.json
+    
+    - name: Comment PR with test results
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const fs = require('fs');
+          const summary = JSON.parse(fs.readFileSync('test_summary.json', 'utf8'));
+          
+          const statusEmoji = {
+            'success': '✅',
+            'failure': '❌',
+            'cancelled': '⏹️',
+            'skipped': '⏭️'
+          };
+          
+          let comment = `## 🧪 Test Results Summary\n\n`;
+          comment += `**Success Rate: ${summary.success_rate.toFixed(1)}%** (${summary.passed_jobs}/${summary.total_jobs} jobs passed)\n\n`;
+          comment += `| Test Category | Status |\n`;
+          comment += `|---------------|--------|\n`;
+          
+          for (const [job, result] of Object.entries(summary.results)) {
+            const emoji = statusEmoji[result] || '❓';
+            const jobName = job.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+            comment += `| ${jobName} | ${emoji} ${result} |\n`;
+          }
+          
+          if (summary.failed_jobs > 0) {
+            comment += `\n⚠️ **${summary.failed_jobs} test job(s) failed.** Please check the workflow logs for details.`;
+          } else {
+            comment += `\n🎉 **All tests passed!** Great job!`;
+          }
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: comment
+          });
+
+  # Quality Gates
+  quality-gates:
+    name: Quality Gates
+    runs-on: ubuntu-latest
+    needs: [code-quality, security-scan, unit-tests, integration-tests, security-tests]
+    if: always()
+    
+    steps:
+    - name: Check quality gates
+      run: |
+        echo "Checking quality gates..."
+        
+        # Check if critical jobs passed
+        if [[ "${{ needs.code-quality.result }}" != "success" ]]; then
+          echo "❌ Code quality checks failed"
+          exit 1
+        fi
+        
+        if [[ "${{ needs.unit-tests.result }}" != "success" ]]; then
+          echo "❌ Unit tests failed"
+          exit 1
+        fi
+        
+        if [[ "${{ needs.security-tests.result }}" != "success" ]]; then
+          echo "❌ Security tests failed"
+          exit 1
+        fi
+        
+        # Security scan can have warnings but shouldn't fail the build
+        if [[ "${{ needs.security-scan.result }}" == "failure" ]]; then
+          echo "⚠️ Security scan found issues (check artifacts)"
+        fi
+        
+        # Integration tests are important but not blocking for development
+        if [[ "${{ needs.integration-tests.result }}" != "success" ]]; then
+          echo "⚠️ Integration tests failed (check configuration)"
+        fi
+        
+        echo "✅ All critical quality gates passed!"
+    
+    - name: Set deployment ready status
+      if: github.ref == 'refs/heads/main' && success()
+      run: |
+        echo "🚀 Ready for deployment!"
+        echo "DEPLOYMENT_READY=true" >> $GITHUB_ENV

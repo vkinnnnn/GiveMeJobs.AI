@@ -28,7 +28,7 @@ Write-Host "✅ Docker services started" -ForegroundColor Green
 Write-Host ""
 
 # Wait for databases to be ready
-Write-Host "⏳ Waiting for databases to be ready (10 seconds)..." -ForegroundColor Yellow
+Write-Host "Waiting for databases to be ready (10 seconds)..." -ForegroundColor Yellow
 Start-Sleep -Seconds 10
 Write-Host "✅ Databases should be ready" -ForegroundColor Green
 Write-Host ""
@@ -61,11 +61,11 @@ Write-Host "   PostgreSQL: localhost:5432" -ForegroundColor White
 Write-Host "   MongoDB:    localhost:27017" -ForegroundColor White
 Write-Host "   Redis:      localhost:6379" -ForegroundColor White
 Write-Host ""
-Write-Host "⏹️  To stop all services:" -ForegroundColor Yellow
+Write-Host "To stop all services:" -ForegroundColor Yellow
 Write-Host "   1. Close the PowerShell windows" -ForegroundColor White
 Write-Host "   2. Run: docker-compose down" -ForegroundColor White
 Write-Host ""
-Write-Host "🌐 Opening browser in 5 seconds..." -ForegroundColor Yellow
+Write-Host "Opening browser in 5 seconds..." -ForegroundColor Yellow
 Start-Sleep -Seconds 5
 
 # Open browser

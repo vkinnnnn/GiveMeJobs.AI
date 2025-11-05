@@ -1,0 +1,502 @@
+name: CI/CD Pipeline - GiveMeJobs Platform
+
+on:
+  push:
+    branches: [main, develop, 'release/*']
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+        - staging
+        - production
+      force_deploy:
+        description: 'Force deployment (skip tests)'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # Code Quality and Security Checks
+  code-quality:
+    name: Code Quality & Security
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          cd packages/python-services
+          pip install -r requirements-dev.txt
+
+      - name: Run ESLint (Node.js)
+        run: npm run lint
+
+      - name: Run Prettier check
+        run: npm run format:check
+
+      - name: Run Python linting
+        run: |
+          cd packages/python-services
+          black --check .
+          isort --check-only .
+          flake8 .
+          mypy .
+
+      - name: Run security scans
+        run: |
+          # Node.js security audit
+          npm audit --audit-level=high
+          
+          # Python security scan
+          cd packages/python-services
+          bandit -r app/ -f json -o bandit-report.json || true
+          safety check --json --output safety-report.json || true
+
+      - name: Upload security reports
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: security-reports
+          path: |
+            packages/python-services/bandit-report.json
+            packages/python-services/safety-report.json
+
+  # Unit and Integration Tests
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    needs: code-quality
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_USER: test_user
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+      mongodb:
+        image: mongo:7
+        env:
+          MONGO_INITDB_ROOT_USERNAME: test_user
+          MONGO_INITDB_ROOT_PASSWORD: test_password
+        options: >-
+          --health-cmd "mongosh --eval 'db.adminCommand(\"ping\")'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 27017:27017
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          cd packages/python-services
+          pip install -r requirements-dev.txt
+
+      - name: Run Node.js tests
+        env:
+          NODE_ENV: test
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
+          REDIS_URL: redis://localhost:6379
+          MONGODB_URL: mongodb://test_user:test_password@localhost:27017/test_db
+        run: |
+          npm run test:backend
+          npm run test:frontend
+
+      - name: Run Python tests
+        env:
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5432
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: test_db
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+          MONGO_HOST: localhost
+          MONGO_PORT: 27017
+          MONGO_USER: test_user
+          MONGO_PASSWORD: test_password
+        run: |
+          cd packages/python-services
+          pytest --cov=app --cov-report=xml --cov-report=html
+
+      - name: Upload test coverage
+        uses: codecov/codecov-action@v3
+        with:
+          files: |
+            packages/backend/coverage/lcov.info
+            packages/frontend/coverage/lcov.info
+            packages/python-services/coverage.xml
+
+  # Build Docker Images
+  build:
+    name: Build Images
+    runs-on: ubuntu-latest
+    needs: [code-quality, test]
+    if: github.event_name != 'pull_request' || github.event.inputs.force_deploy == 'true'
+    outputs:
+      backend-image: ${{ steps.meta-backend.outputs.tags }}
+      frontend-image: ${{ steps.meta-frontend.outputs.tags }}
+      python-services-image: ${{ steps.meta-python.outputs.tags }}
+      image-digest: ${{ steps.build.outputs.digest }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata for backend
+        id: meta-backend
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Extract metadata for frontend
+        id: meta-frontend
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Extract metadata for Python services
+        id: meta-python
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/python-services
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push backend image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: packages/backend/Dockerfile.production
+          push: true
+          tags: ${{ steps.meta-backend.outputs.tags }}
+          labels: ${{ steps.meta-backend.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
+
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: packages/frontend/Dockerfile.production
+          push: true
+          tags: ${{ steps.meta-frontend.outputs.tags }}
+          labels: ${{ steps.meta-frontend.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
+          build-args: |
+            NEXT_PUBLIC_API_URL=${{ github.ref == 'refs/heads/main' && 'https://api.givemejobs.ai' || 'https://api-staging.givemejobs.ai' }}
+
+      - name: Build and push Python services image
+        uses: docker/build-push-action@v5
+        with:
+          context: packages/python-services
+          file: packages/python-services/Dockerfile.production
+          push: true
+          tags: ${{ steps.meta-python.outputs.tags }}
+          labels: ${{ steps.meta-python.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
+
+      - name: Build and push Celery worker image
+        uses: docker/build-push-action@v5
+        with:
+          context: packages/python-services
+          file: packages/python-services/Dockerfile.worker
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/celery-worker:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
+
+  # Deploy to Staging
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/develop' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'staging')
+    environment:
+      name: staging
+      url: https://staging.givemejobs.ai
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Configure kubectl
+        run: |
+          aws eks update-kubeconfig --region us-east-1 --name givemejobs-staging
+
+      - name: Deploy with Helm
+        run: |
+          helm upgrade --install givemejobs-staging ./helm/givemejobs \
+            --namespace givemejobs-staging \
+            --create-namespace \
+            --values helm/givemejobs/values-staging.yaml \
+            --set images.backend.tag=${{ github.sha }} \
+            --set images.frontend.tag=${{ github.sha }} \
+            --set images.pythonServices.tag=${{ github.sha }} \
+            --set images.celeryWorker.tag=${{ github.sha }} \
+            --wait --timeout=10m
+
+      - name: Run smoke tests
+        run: |
+          # Wait for deployment to be ready
+          kubectl wait --for=condition=available --timeout=300s deployment/backend -n givemejobs-staging
+          kubectl wait --for=condition=available --timeout=300s deployment/frontend -n givemejobs-staging
+          kubectl wait --for=condition=available --timeout=300s deployment/python-services -n givemejobs-staging
+          
+          # Run smoke tests
+          curl -f https://staging.givemejobs.ai/health || exit 1
+          curl -f https://api-staging.givemejobs.ai/health || exit 1
+          curl -f https://ai-staging.givemejobs.ai/health || exit 1
+
+      - name: Notify deployment
+        uses: 8398a7/action-slack@v3
+        if: always()
+        with:
+          status: ${{ job.status }}
+          channel: '#deployments'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          fields: repo,message,commit,author,action,eventName,ref,workflow
+
+  # Deploy to Production
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'production')
+    environment:
+      name: production
+      url: https://givemejobs.ai
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Configure kubectl
+        run: |
+          aws eks update-kubeconfig --region us-east-1 --name givemejobs-production
+
+      - name: Pre-deployment backup
+        run: |
+          # Trigger backup job before deployment
+          kubectl create job --from=cronjob/postgresql-backup pre-deploy-backup-$(date +%s) -n givemejobs-prod
+          kubectl create job --from=cronjob/mongodb-backup pre-deploy-backup-mongo-$(date +%s) -n givemejobs-prod
+
+      - name: Deploy with Helm (Blue-Green)
+        run: |
+          # Deploy to green environment
+          helm upgrade --install givemejobs-green ./helm/givemejobs \
+            --namespace givemejobs-prod \
+            --values helm/givemejobs/values-production.yaml \
+            --set images.backend.tag=${{ github.sha }} \
+            --set images.frontend.tag=${{ github.sha }} \
+            --set images.pythonServices.tag=${{ github.sha }} \
+            --set images.celeryWorker.tag=${{ github.sha }} \
+            --set nameOverride=givemejobs-green \
+            --wait --timeout=15m
+
+      - name: Run production smoke tests
+        run: |
+          # Test green deployment
+          kubectl port-forward svc/givemejobs-green-frontend 8080:3000 -n givemejobs-prod &
+          sleep 10
+          curl -f http://localhost:8080/health || exit 1
+          
+          # Test backend
+          kubectl port-forward svc/givemejobs-green-backend 8081:4000 -n givemejobs-prod &
+          sleep 10
+          curl -f http://localhost:8081/health || exit 1
+
+      - name: Switch traffic to green (Blue-Green Deployment)
+        run: |
+          # Update ingress to point to green deployment
+          kubectl patch ingress givemejobs-ingress -n givemejobs-prod \
+            --patch '{"spec":{"rules":[{"host":"givemejobs.ai","http":{"paths":[{"path":"/","pathType":"Prefix","backend":{"service":{"name":"givemejobs-green-frontend","port":{"number":3000}}}}]}}]}}'
+          
+          # Wait for ingress update
+          sleep 30
+          
+          # Verify production traffic
+          curl -f https://givemejobs.ai/health || exit 1
+
+      - name: Cleanup old blue deployment
+        run: |
+          # Remove old blue deployment after successful green deployment
+          helm uninstall givemejobs-blue -n givemejobs-prod || true
+          
+          # Rename green to blue for next deployment
+          helm upgrade givemejobs-blue ./helm/givemejobs \
+            --namespace givemejobs-prod \
+            --reuse-values \
+            --set nameOverride=givemejobs-blue
+
+      - name: Update deployment status
+        run: |
+          # Update deployment tracking
+          kubectl annotate deployment/givemejobs-green-backend -n givemejobs-prod \
+            deployment.kubernetes.io/revision="$(date +%s)" \
+            deployment.kubernetes.io/deployed-by="${{ github.actor }}" \
+            deployment.kubernetes.io/commit-sha="${{ github.sha }}"
+
+      - name: Notify production deployment
+        uses: 8398a7/action-slack@v3
+        if: always()
+        with:
+          status: ${{ job.status }}
+          channel: '#production-deployments'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          fields: repo,message,commit,author,action,eventName,ref,workflow
+          mention: here
+          if_mention: failure
+
+  # Security Scanning
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name != 'pull_request'
+    steps:
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ needs.build.outputs.backend-image }}
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  # Performance Testing
+  performance-test:
+    name: Performance Testing
+    runs-on: ubuntu-latest
+    needs: deploy-staging
+    if: github.ref == 'refs/heads/develop'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install Locust
+        run: pip install locust
+
+      - name: Run performance tests
+        run: |
+          cd packages/python-services/tests/performance
+          locust --host=https://staging.givemejobs.ai \
+            --users=50 --spawn-rate=5 --run-time=5m \
+            --html=performance-report.html --csv=performance-results
+
+      - name: Upload performance results
+        uses: actions/upload-artifact@v3
+        with:
+          name: performance-results
+          path: |
+            packages/python-services/tests/performance/performance-report.html
+            packages/python-services/tests/performance/performance-results_*.csv

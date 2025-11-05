@@ -1,0 +1,141 @@
+-- UP
+-- Performance indexes for GiveMeJobs platform
+
+-- Users table indexes
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+CREATE INDEX IF NOT EXISTS idx_users_created_at ON users(created_at);
+CREATE INDEX IF NOT EXISTS idx_users_last_login ON users(last_login);
+
+-- User profiles table indexes
+CREATE INDEX IF NOT EXISTS idx_user_profiles_user_id ON user_profiles(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_profiles_skill_score ON user_profiles(skill_score);
+
+-- Jobs table indexes
+CREATE INDEX IF NOT EXISTS idx_jobs_external_id_source ON jobs(external_id, source);
+CREATE INDEX IF NOT EXISTS idx_jobs_title ON jobs USING gin(to_tsvector('english', title));
+CREATE INDEX IF NOT EXISTS idx_jobs_company ON jobs(company);
+CREATE INDEX IF NOT EXISTS idx_jobs_location ON jobs USING gin(to_tsvector('english', location));
+CREATE INDEX IF NOT EXISTS idx_jobs_remote_type ON jobs(remote_type);
+CREATE INDEX IF NOT EXISTS idx_jobs_job_type ON jobs(job_type);
+CREATE INDEX IF NOT EXISTS idx_jobs_salary_range ON jobs(salary_min, salary_max);
+CREATE INDEX IF NOT EXISTS idx_jobs_posted_date ON jobs(posted_date DESC);
+CREATE INDEX IF NOT EXISTS idx_jobs_created_at ON jobs(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_jobs_industry ON jobs(industry);
+CREATE INDEX IF NOT EXISTS idx_jobs_experience_level ON jobs(experience_level);
+
+-- Applications table indexes
+CREATE INDEX IF NOT EXISTS idx_applications_user_id ON applications(user_id);
+CREATE INDEX IF NOT EXISTS idx_applications_job_id ON applications(job_id);
+CREATE INDEX IF NOT EXISTS idx_applications_user_job ON applications(user_id, job_id);
+CREATE INDEX IF NOT EXISTS idx_applications_status ON applications(status);
+CREATE INDEX IF NOT EXISTS idx_applications_applied_date ON applications(applied_date DESC);
+CREATE INDEX IF NOT EXISTS idx_applications_response_date ON applications(response_date);
+CREATE INDEX IF NOT EXISTS idx_applications_interview_date ON applications(interview_date);
+
+-- Skills table indexes (if exists)
+CREATE INDEX IF NOT EXISTS idx_skills_user_id ON skills(user_id);
+CREATE INDEX IF NOT EXISTS idx_skills_name ON skills(name);
+CREATE INDEX IF NOT EXISTS idx_skills_category ON skills(category);
+CREATE INDEX IF NOT EXISTS idx_skills_proficiency_level ON skills(proficiency_level);
+
+-- Experience table indexes (if exists)
+CREATE INDEX IF NOT EXISTS idx_experience_user_id ON experience(user_id);
+CREATE INDEX IF NOT EXISTS idx_experience_company ON experience(company);
+CREATE INDEX IF NOT EXISTS idx_experience_current ON experience(current);
+CREATE INDEX IF NOT EXISTS idx_experience_start_date ON experience(start_date DESC);
+
+-- Education table indexes (if exists)
+CREATE INDEX IF NOT EXISTS idx_education_user_id ON education(user_id);
+CREATE INDEX IF NOT EXISTS idx_education_institution ON education(institution);
+CREATE INDEX IF NOT EXISTS idx_education_degree ON education(degree);
+
+-- Job alerts table indexes (if exists)
+CREATE INDEX IF NOT EXISTS idx_job_alerts_user_id ON job_alerts(user_id);
+CREATE INDEX IF NOT EXISTS idx_job_alerts_active ON job_alerts(active);
+CREATE INDEX IF NOT EXISTS idx_job_alerts_created_at ON job_alerts(created_at);
+
+-- Saved jobs table indexes (if exists)
+CREATE INDEX IF NOT EXISTS idx_saved_jobs_user_id ON saved_jobs(user_id);
+CREATE INDEX IF NOT EXISTS idx_saved_jobs_job_id ON saved_jobs(job_id);
+CREATE INDEX IF NOT EXISTS idx_saved_jobs_user_job ON saved_jobs(user_id, job_id);
+CREATE INDEX IF NOT EXISTS idx_saved_jobs_created_at ON saved_jobs(created_at DESC);
+
+-- Notifications table indexes (if exists)
+CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON notifications(user_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_read ON notifications(read);
+CREATE INDEX IF NOT EXISTS idx_notifications_type ON notifications(type);
+CREATE INDEX IF NOT EXISTS idx_notifications_created_at ON notifications(created_at DESC);
+
+-- Composite indexes for common query patterns
+CREATE INDEX IF NOT EXISTS idx_jobs_location_remote_salary ON jobs(location, remote_type, salary_min, salary_max);
+CREATE INDEX IF NOT EXISTS idx_jobs_company_posted_date ON jobs(company, posted_date DESC);
+CREATE INDEX IF NOT EXISTS idx_applications_user_status_date ON applications(user_id, status, applied_date DESC);
+
+-- Full-text search indexes
+CREATE INDEX IF NOT EXISTS idx_jobs_description_fts ON jobs USING gin(to_tsvector('english', description));
+CREATE INDEX IF NOT EXISTS idx_jobs_requirements_fts ON jobs USING gin(to_tsvector('english', array_to_string(requirements, ' ')));
+
+-- DOWN
+-- Remove performance indexes
+
+DROP INDEX IF EXISTS idx_users_email;
+DROP INDEX IF EXISTS idx_users_created_at;
+DROP INDEX IF EXISTS idx_users_last_login;
+
+DROP INDEX IF EXISTS idx_user_profiles_user_id;
+DROP INDEX IF EXISTS idx_user_profiles_skill_score;
+
+DROP INDEX IF EXISTS idx_jobs_external_id_source;
+DROP INDEX IF EXISTS idx_jobs_title;
+DROP INDEX IF EXISTS idx_jobs_company;
+DROP INDEX IF EXISTS idx_jobs_location;
+DROP INDEX IF EXISTS idx_jobs_remote_type;
+DROP INDEX IF EXISTS idx_jobs_job_type;
+DROP INDEX IF EXISTS idx_jobs_salary_range;
+DROP INDEX IF EXISTS idx_jobs_posted_date;
+DROP INDEX IF EXISTS idx_jobs_created_at;
+DROP INDEX IF EXISTS idx_jobs_industry;
+DROP INDEX IF EXISTS idx_jobs_experience_level;
+
+DROP INDEX IF EXISTS idx_applications_user_id;
+DROP INDEX IF EXISTS idx_applications_job_id;
+DROP INDEX IF EXISTS idx_applications_user_job;
+DROP INDEX IF EXISTS idx_applications_status;
+DROP INDEX IF EXISTS idx_applications_applied_date;
+DROP INDEX IF EXISTS idx_applications_response_date;
+DROP INDEX IF EXISTS idx_applications_interview_date;
+
+DROP INDEX IF EXISTS idx_skills_user_id;
+DROP INDEX IF EXISTS idx_skills_name;
+DROP INDEX IF EXISTS idx_skills_category;
+DROP INDEX IF EXISTS idx_skills_proficiency_level;
+
+DROP INDEX IF EXISTS idx_experience_user_id;
+DROP INDEX IF EXISTS idx_experience_company;
+DROP INDEX IF EXISTS idx_experience_current;
+DROP INDEX IF EXISTS idx_experience_start_date;
+
+DROP INDEX IF EXISTS idx_education_user_id;
+DROP INDEX IF EXISTS idx_education_institution;
+DROP INDEX IF EXISTS idx_education_degree;
+
+DROP INDEX IF EXISTS idx_job_alerts_user_id;
+DROP INDEX IF EXISTS idx_job_alerts_active;
+DROP INDEX IF EXISTS idx_job_alerts_created_at;
+
+DROP INDEX IF EXISTS idx_saved_jobs_user_id;
+DROP INDEX IF EXISTS idx_saved_jobs_job_id;
+DROP INDEX IF EXISTS idx_saved_jobs_user_job;
+DROP INDEX IF EXISTS idx_saved_jobs_created_at;
+
+DROP INDEX IF EXISTS idx_notifications_user_id;
+DROP INDEX IF EXISTS idx_notifications_read;
+DROP INDEX IF EXISTS idx_notifications_type;
+DROP INDEX IF EXISTS idx_notifications_created_at;
+
+DROP INDEX IF EXISTS idx_jobs_location_remote_salary;
+DROP INDEX IF EXISTS idx_jobs_company_posted_date;
+DROP INDEX IF EXISTS idx_applications_user_status_date;
+
+DROP INDEX IF EXISTS idx_jobs_description_fts;
+DROP INDEX IF EXISTS idx_jobs_requirements_fts;

@@ -45,7 +45,7 @@ export function OfflineIndicator() {
           />
         </svg>
         <span className="font-medium">
-          You're offline. Some features may be unavailable.
+          You&apos;re offline. Some features may be unavailable.
         </span>
       </div>
     </div>

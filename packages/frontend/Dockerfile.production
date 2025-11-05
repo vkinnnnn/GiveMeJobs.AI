@@ -1,52 +1,86 @@
-# Production Dockerfile for GiveMeJobs Frontend
+# Multi-stage production build for Next.js Frontend
 FROM node:20-alpine AS base
 
-# Install dependencies only when needed
-FROM base AS deps
-RUN apk add --no-cache libc6-compat
+# Install security updates and required packages
+RUN apk update && apk upgrade && \
+    apk add --no-cache libc6-compat dumb-init curl && \
+    rm -rf /var/cache/apk/*
+
 WORKDIR /app
 
+# Install dependencies stage
+FROM base AS deps
 # Copy package files
 COPY package*.json ./
 COPY packages/frontend/package*.json ./packages/frontend/
 COPY packages/shared-types/package*.json ./packages/shared-types/
 
-# Install dependencies
-RUN npm ci --only=production && npm cache clean --force
+# Install production dependencies only
+RUN npm ci --only=production --workspace=@givemejobs/frontend --workspace=@givemejobs/shared-types && \
+    npm cache clean --force
 
-# Rebuild the source code only when needed
+# Build dependencies stage (includes dev dependencies)
+FROM base AS build-deps
+COPY package*.json ./
+COPY packages/frontend/package*.json ./packages/frontend/
+COPY packages/shared-types/package*.json ./packages/shared-types/
+
+# Install all dependencies for building
+RUN npm ci --workspace=@givemejobs/frontend --workspace=@givemejobs/shared-types
+
+# Build stage
 FROM base AS builder
 WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
-COPY . .
 
-# Build the application
-RUN npm run build --workspace=packages/frontend
+# Copy build dependencies
+COPY --from=build-deps /app/node_modules ./node_modules
+COPY --from=build-deps /app/packages/frontend/node_modules ./packages/frontend/node_modules
 
-# Production image, copy all the files and run next
-FROM base AS runner
-WORKDIR /app
+# Copy source code
+COPY packages/frontend/ ./packages/frontend/
+COPY packages/shared-types/ ./packages/shared-types/
+COPY next.config.js ./packages/frontend/ 2>/dev/null || true
 
-ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
+# Set build-time environment variables
+ARG NEXT_PUBLIC_API_URL=http://localhost:4000
+ARG NEXT_PUBLIC_APP_ENV=production
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_APP_ENV=$NEXT_PUBLIC_APP_ENV
 
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+# Build the application with standalone output
+WORKDIR /app/packages/frontend
+RUN npm run build
 
-# Copy built application
+# Production runtime stage
+FROM base AS runtime
+
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nextjs -u 1001 -G nodejs
+
+# Set production environment
+ENV NODE_ENV=production \
+    PORT=3000 \
+    HOSTNAME="0.0.0.0" \
+    NEXT_TELEMETRY_DISABLED=1
+
+# Copy production files
 COPY --from=builder /app/packages/frontend/public ./public
+
+# Copy standalone build output
 COPY --from=builder --chown=nextjs:nodejs /app/packages/frontend/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/packages/frontend/.next/static ./.next/static
 
+# Switch to non-root user
 USER nextjs
 
+# Expose port
 EXPOSE 3000
 
-ENV PORT=3000
-ENV HOSTNAME="0.0.0.0"
-
 # Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
     CMD curl -f http://localhost:3000/api/health || exit 1
 
+# Use dumb-init to handle signals properly
+ENTRYPOINT ["dumb-init", "--"]
 CMD ["node", "server.js"]
