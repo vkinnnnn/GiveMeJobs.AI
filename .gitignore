@@ -19,6 +19,21 @@ __pycache__/
 *.p12
 *.pfx
 
+# API Keys and Credentials
+*api-key*
+*api_key*
+*apikey*
+*secret*
+*password*
+*credentials*
+config/secrets.json
+config/credentials.json
+
+# OAuth and Authentication
+*oauth*secret*
+*client-secret*
+*jwt-secret*
+
 # Blockchain private keys and wallets
 *private-key*
 *wallet*
@@ -67,3 +82,21 @@ yarn-error.log*
 .cache/
 temp/
 tmp/
+
+# Sensitive documentation (keep examples)
+*PRIVATE*
+*CONFIDENTIAL*
+*SECRET*
+
+# Backup files
+*.backup
+*.bak
+*.old
+
+# Docker secrets
+docker-compose.override.yml
+secrets/
+
+# Monitoring and Analytics
+.sentry-*
+sentry.properties

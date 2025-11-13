@@ -1,24 +1,13 @@
 import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
 import './globals.css';
-import { ErrorBoundary } from '@/components/ErrorBoundary';
-import { ToastContainer } from '@/components/Toast';
-import { SkipLink } from '@/components/ui/SkipLink';
-import { OfflineIndicator } from '@/components/OfflineIndicator';
+import { ChatBot } from '@/components/chatbot';
+
+const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'GiveMeJobs - AI-Powered Job Application Platform',
-  description: 'Streamline your job search with AI-powered tools for resume generation, job matching, and application tracking',
-  keywords: 'job search, AI resume, job application, career tools, job matching',
-  authors: [{ name: 'GiveMeJobs' }],
-  manifest: '/manifest.json',
-};
-
-export const viewport = {
-  width: 'device-width',
-  initialScale: 1,
-  maximumScale: 5,
-  viewportFit: 'cover',
-  themeColor: '#2563eb',
+  title: 'GiveMeJobs - Your AI-Powered Job Search Platform',
+  description: 'Find your dream job with AI-powered job search, resume building, and interview preparation',
 };
 
 export default function RootLayout({
@@ -27,22 +16,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <head>
-        <meta charSet="utf-8" />
-        <link rel="icon" href="/favicon.ico" />
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-      </head>
-      <body suppressHydrationWarning>
-        <div id="skip-links">
-          <SkipLink href="#main-content">Skip to main content</SkipLink>
-          <SkipLink href="#navigation">Skip to navigation</SkipLink>
-        </div>
-        <OfflineIndicator />
-        <ErrorBoundary>
-          {children}
-          <ToastContainer />
-        </ErrorBoundary>
+    <html lang="en">
+      <body className={inter.className}>
+        {children}
+        <ChatBot defaultOpen={false} position="bottom-right" theme="auto" />
       </body>
     </html>
   );

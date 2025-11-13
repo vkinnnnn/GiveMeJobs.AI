@@ -1,104 +1,293 @@
-# Base Requirements for GiveMeJobs Python Services
-# Python-centric architecture with FastAPI, Pydantic v2, and async support
+# GiveMeJobs Python-Centric Backend - Production Requirements
+# Complete backend replacement for Node.js services with FastAPI
+# Updated for Python 3.13+ with latest stable versions (November 2025)
 
-# Core Framework
-fastapi==0.104.1
-uvicorn[standard]==0.24.0
-pydantic==2.5.0
-pydantic-settings==2.1.0
+# ============================================================================
+# CORE FRAMEWORK
+# ============================================================================
+fastapi==0.115.5               # High-performance async web framework (latest stable)
+uvicorn[standard]==0.32.1      # ASGI server with WebSocket support
+pydantic==2.10.3               # Data validation using Python type hints v2
+pydantic-settings==2.6.1       # Settings management from env variables
 
-# Database (Async SQLAlchemy 2.0)
-sqlalchemy[asyncio]==2.0.23
-asyncpg==0.29.0
-alembic==1.13.1
+# ============================================================================
+# DATABASE & ORM
+# ============================================================================
+# PostgreSQL (Primary Database)
+sqlalchemy[asyncio]==2.0.36    # Async ORM for PostgreSQL (latest 2.0.x)
+asyncpg==0.30.0                # High-performance PostgreSQL driver
+alembic==1.14.0                # Database migration tool
+psycopg[binary]==3.2.3         # PostgreSQL adapter v3 (replaces psycopg2)
 
-# Caching & Background Tasks
-redis[hiredis]==5.0.1
-celery==5.3.4
-kombu==5.3.4
+# MongoDB (Document Storage)
+motor==3.6.0                   # Async MongoDB driver (latest)
+pymongo==4.10.1                # MongoDB Python driver
 
-# Authentication & Security
-python-jose[cryptography]==3.3.0
-passlib[bcrypt]==1.7.4
-python-multipart==0.0.6
-cryptography==41.0.8
-fastapi-users[sqlalchemy]==12.1.2
-fastapi-users[redis]==12.1.2
-pyotp==2.9.0
-qrcode[pil]==7.4.2
+# ============================================================================
+# CACHING & MESSAGE QUEUE
+# ============================================================================
+redis[hiredis]==5.2.1          # Redis client with C extension (latest)
+celery==5.4.0                  # Distributed task queue
+kombu==5.4.2                   # Messaging library for Celery
+flower==2.0.1                  # Celery monitoring tool
 
-# HTTP Client & API
-httpx==0.25.2
-aiofiles==23.2.1
+# ============================================================================
+# AUTHENTICATION & SECURITY
+# ============================================================================
+# JWT & OAuth
+python-jose[cryptography]==3.3.0  # JWT token handling
+passlib[bcrypt]==1.7.4            # Password hashing
+python-multipart==0.0.17          # Form data parsing (latest)
+cryptography==44.0.0              # Cryptographic recipes (latest)
 
-# Logging & Monitoring
-structlog==23.2.0
-opentelemetry-api==1.21.0
-opentelemetry-sdk==1.21.0
-opentelemetry-instrumentation-fastapi==0.42b0
-opentelemetry-exporter-jaeger==1.21.0
-prometheus-client==0.19.0
-sentry-sdk[fastapi]==1.38.0
+# OAuth Providers
+authlib==1.4.0                 # OAuth client library (latest)
+httpx-oauth==0.15.2            # OAuth2 client for httpx (latest)
 
-# Data Processing
-pandas==2.1.4
-numpy==1.25.2
-polars==0.19.19
+# Multi-Factor Authentication
+pyotp==2.9.0                   # OTP generation and validation
+qrcode[pil]==8.0               # QR code generation for MFA setup (latest)
 
-# AI/ML Libraries
-openai==1.3.7
-langchain==0.0.350
-langchain-openai==0.0.2
-pinecone-client==2.2.4
-scikit-learn==1.3.2
-joblib==1.3.2
+# Advanced Security
+argon2-cffi==23.1.0            # Argon2 password hashing
+bcrypt==4.2.1                  # bcrypt password hashing (latest)
+itsdangerous==2.2.0            # Secure data serialization (latest)
 
-# Document Processing
-pypdf2==3.0.1
-python-docx==1.1.0
-jinja2==3.1.2
-bleach==6.1.0
+# ============================================================================
+# HTTP CLIENT & ASYNC I/O
+# ============================================================================
+httpx==0.28.1                  # Async HTTP client (latest)
+aiofiles==24.1.0               # Async file operations (latest)
+aiohttp==3.11.11               # Alternative async HTTP client (latest)
+websockets==14.1               # WebSocket client/server (latest)
 
-# CDN & Asset Optimization
-pillow==10.1.0
-cssmin==0.2.0
-jsmin==3.0.1
-brotli==1.1.0
-boto3==1.34.0
-botocore==1.34.0
+# ============================================================================
+# LOGGING, MONITORING & OBSERVABILITY
+# ============================================================================
+# Structured Logging
+structlog==24.4.0              # Structured logging (latest)
+python-json-logger==3.2.1      # JSON log formatter (latest)
 
-# Validation & Serialization
-email-validator==2.1.0
-python-dateutil==2.8.2
+# OpenTelemetry (Distributed Tracing)
+opentelemetry-api==1.29.0
+opentelemetry-sdk==1.29.0
+opentelemetry-instrumentation-fastapi==0.50b0
+opentelemetry-exporter-jaeger==1.29.0
+opentelemetry-exporter-otlp==1.29.0
 
-# Rate Limiting
-slowapi==0.1.9
+# Prometheus Metrics
+prometheus-client==0.21.0      # Prometheus metrics (latest)
+prometheus-fastapi-instrumentator==7.0.0  # Latest instrumentator
 
-# Input Validation & Security
-bleach==6.1.0
-html5lib==1.1
-defusedxml==0.7.1
-validators==0.22.0
-python-magic==0.4.27
-pydantic-extra-types==2.1.0
+# Error Tracking
+sentry-sdk[fastapi]==2.19.2    # Error tracking and monitoring (latest)
 
-# Testing
-pytest==7.4.3
-pytest-asyncio==0.21.1
-pytest-mock==3.12.0
-pytest-cov==4.1.0
-pytest-postgresql==5.0.0
-pytest-redis==3.0.2
-httpx==0.25.2
+# ============================================================================
+# DATA PROCESSING & ANALYTICS
+# ============================================================================
+pandas==2.2.3                  # Data manipulation and analysis (latest)
+numpy==2.2.1                   # Numerical computing (latest 2.x)
+polars==1.17.1                 # Fast DataFrame library (latest)
+scipy==1.15.1                  # Scientific computing (latest)
+statsmodels==0.14.4            # Statistical models (latest)
 
-# Development Tools
-black==23.11.0
-isort==5.12.0
-flake8==6.1.0
-mypy==1.7.1
-bandit==1.7.5
-safety==2.3.5
-pre-commit==3.6.0
+# ============================================================================
+# AI/ML LIBRARIES
+# ============================================================================
+# OpenAI Integration
+openai==1.57.4                 # OpenAI API client (latest)
+tiktoken==0.8.0                # Token counting for OpenAI (latest)
 
-# Performance Testing
-locust==2.17.0
+# LangChain (AI Application Framework)
+langchain==0.3.14              # Building applications with LLMs (latest)
+langchain-openai==0.2.14       # OpenAI integration for LangChain (latest)
+langchain-community==0.3.13    # Community integrations (latest)
+langchain-core==0.3.28         # Core LangChain functionality
+
+# Vector Database
+pinecone==5.4.2                # Pinecone vector database client (latest, renamed package)
+
+# Machine Learning
+scikit-learn==1.6.0            # Machine learning algorithms (latest)
+joblib==1.4.2                  # Pipeline persistence (latest)
+xgboost==2.1.3                 # Gradient boosting (latest)
+lightgbm==4.5.0                # Light gradient boosting (latest)
+
+# NLP
+spacy==3.8.3                   # Industrial-strength NLP (latest)
+nltk==3.9.1                    # Natural language toolkit (latest)
+
+# ============================================================================
+# DOCUMENT PROCESSING
+# ============================================================================
+# PDF Processing
+pypdf==5.1.0                   # PDF reading and manipulation (PyPDF2 successor, latest)
+reportlab==4.2.5               # PDF generation (latest)
+pdfkit==1.0.0                  # HTML to PDF conversion
+weasyprint==63.1               # Alternative HTML to PDF (latest)
+
+# Word Documents
+python-docx==1.1.2             # DOCX file creation and modification (latest)
+python-pptx==1.0.2             # PowerPoint file handling (latest)
+
+# Template Engines
+jinja2==3.1.5                  # Template engine (latest)
+markupsafe==3.0.2              # String handling for Jinja2 (latest)
+
+# HTML/Markdown
+markdown==3.7                  # Markdown processing (latest)
+beautifulsoup4==4.12.3         # HTML parsing (latest)
+lxml==5.3.0                    # XML/HTML processing (latest)
+
+# Sanitization
+bleach==6.2.0                  # HTML sanitization (latest)
+html5lib==1.1                  # HTML parser (stable)
+defusedxml==0.7.1              # XML parsing protection (stable)
+
+# ============================================================================
+# CDN & ASSET OPTIMIZATION
+# ============================================================================
+# Image Processing
+pillow==11.0.0                 # Image manipulation (latest)
+pillow-heif==0.20.0            # HEIF image support (latest)
+
+# Asset Optimization
+cssmin==0.2.0                  # CSS minification (stable)
+jsmin==3.0.1                   # JavaScript minification (stable)
+htmlmin==0.1.12                # HTML minification (stable)
+rjsmin==1.2.3                  # JavaScript minifier (alternative)
+rcssmin==1.1.2                 # CSS minifier (alternative)
+
+# Compression
+brotli==1.1.0                  # Brotli compression (stable)
+zstandard==0.23.0              # Zstandard compression (latest)
+
+# Cloud Storage (AWS S3, CloudFront)
+boto3==1.35.80                 # AWS SDK (latest)
+botocore==1.35.80              # AWS core functionality (latest)
+s3transfer==0.10.4             # S3 file transfers (latest)
+
+# ============================================================================
+# VALIDATION & SERIALIZATION
+# ============================================================================
+email-validator==2.2.0         # Email validation (latest)
+python-dateutil==2.9.0.post0   # Date/time parsing (latest)
+phonenumbers==8.13.52          # Phone number parsing and validation (latest)
+validators==0.34.0             # Data validators (latest)
+python-magic==0.4.27           # File type detection (stable)
+pydantic-extra-types==2.10.1   # Extra Pydantic types (latest)
+
+# ============================================================================
+# RATE LIMITING & THROTTLING
+# ============================================================================
+slowapi==0.1.9                 # Rate limiting for FastAPI (stable)
+limits==3.13.2                 # Rate limiting utilities (latest)
+
+# ============================================================================
+# BLOCKCHAIN & WEB3
+# ============================================================================
+web3==7.6.0                    # Ethereum integration (latest)
+eth-account==0.13.4            # Ethereum account management (latest)
+eth-utils==5.1.0               # Ethereum utilities (latest)
+
+# ============================================================================
+# EMAIL & NOTIFICATIONS
+# ============================================================================
+resend==2.5.1                  # Resend email service (latest)
+sendgrid==6.11.0               # SendGrid email service (backup, stable)
+python-telegram-bot==21.9      # Telegram bot API (latest)
+twilio==9.3.7                  # SMS notifications (latest)
+
+# ============================================================================
+# JOB BOARD API CLIENTS
+# ============================================================================
+# Note: Most APIs don't have official Python clients, using httpx for REST calls
+requests==2.31.0               # HTTP library (for legacy integrations)
+
+# ============================================================================
+# UTILITY LIBRARIES
+# ============================================================================
+python-dotenv==1.0.1           # Environment variable loading (latest)
+click==8.1.8                   # CLI creation (latest)
+rich==13.9.4                   # Rich text and formatting (latest)
+tabulate==0.9.0                # Pretty-print tabular data (stable)
+tqdm==4.67.1                   # Progress bars (latest)
+pendulum==3.0.0                # Better datetime handling (stable)
+pytz==2024.2                   # Timezone definitions (latest)
+arrow==1.3.0                   # Better dates and times (stable)
+faker==33.1.0                  # Fake data generation (latest)
+python-slugify==8.0.4          # Slugify strings (latest)
+uuid7==0.1.0                   # UUID v7 implementation (stable)
+
+# ============================================================================
+# API DOCUMENTATION
+# ============================================================================
+# OpenAPI/Swagger is built into FastAPI, but these enhance it
+fastapi-versioning==0.10.0     # API versioning (stable)
+fastapi-pagination==0.12.27    # Pagination helpers (latest)
+fastapi-cache2[redis]==0.2.2   # Caching decorator (latest)
+
+# ============================================================================
+# TESTING (Development)
+# ============================================================================
+pytest==8.3.4                  # Testing framework (latest)
+pytest-asyncio==0.24.0         # Async test support (latest)
+pytest-mock==3.14.0            # Mocking support (latest)
+pytest-cov==6.0.0              # Coverage reporting (latest)
+pytest-postgresql==6.1.1       # PostgreSQL fixtures (latest)
+pytest-redis==3.1.2            # Redis fixtures (latest)
+pytest-docker==3.1.2           # Docker container fixtures (latest)
+pytest-xdist==3.6.1            # Parallel test execution (latest)
+faker==33.1.0                  # Test data generation (latest)
+factory-boy==3.3.1             # Test fixtures (latest)
+freezegun==1.5.1               # Time mocking (latest)
+responses==0.25.3              # Mock requests library (latest)
+
+# ============================================================================
+# CODE QUALITY & DEVELOPMENT TOOLS
+# ============================================================================
+# Formatting
+black==24.10.0                 # Code formatter (latest)
+isort==5.13.2                  # Import sorter (latest)
+autopep8==2.3.1                # PEP 8 formatting (latest)
+ruff==0.8.4                    # Fast Python linter (latest - replaces many tools)
+
+# Linting
+flake8==7.1.1                  # Style guide enforcement (latest)
+pylint==3.3.2                  # Code analysis (latest)
+pyflakes==3.2.0                # Error detection (latest)
+
+# Type Checking
+mypy==1.13.0                   # Static type checker (latest)
+types-redis==4.6.0.20241004    # Type stubs for redis (latest)
+types-requests==2.32.0.20241016 # Type stubs for requests (latest)
+types-aiofiles==24.1.0.20241221 # Type stubs for aiofiles
+
+# Security
+bandit==1.8.0                  # Security issue detection (latest)
+safety==3.2.11                 # Dependency vulnerability checking (latest)
+pip-audit==2.7.3               # Audit Python packages for vulnerabilities
+
+# Pre-commit Hooks
+pre-commit==4.0.1              # Git pre-commit hooks (latest)
+
+# Documentation
+sphinx==8.1.3                  # Documentation generator (latest)
+sphinx-rtd-theme==3.0.2        # ReadTheDocs theme (latest)
+sphinx-autodoc-typehints==2.5.0 # Type hints in docs
+
+# ============================================================================
+# PERFORMANCE & LOAD TESTING
+# ============================================================================
+locust==2.32.4                 # Load testing (latest)
+memory-profiler==0.61.0        # Memory profiling (stable)
+py-spy==0.4.0                  # Sampling profiler (latest)
+scalene==1.5.50                # High-performance profiler (latest)
+
+# ============================================================================
+# DEVELOPMENT UTILITIES
+# ============================================================================
+ipython==8.30.0                # Enhanced Python shell (latest)
+ipdb==0.13.13                  # IPython debugger (stable)
+watchdog==6.0.0                # File system event monitoring (latest)
+python-decouple==3.8           # Strict separation of settings (stable)

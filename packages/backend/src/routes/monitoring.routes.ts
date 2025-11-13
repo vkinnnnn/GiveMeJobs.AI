@@ -7,7 +7,7 @@
 
 import { Router, Request, Response } from 'express';
 import { unifiedMonitoringService } from '../services/unified-monitoring.service';
-import { authenticateToken } from '../middleware/auth.middleware';
+import { authenticate } from '../middleware/auth.middleware';
 import { rateLimitPresets } from '../middleware/rate-limit.middleware';
 import logger from '../services/logger.service';
 
@@ -19,8 +19,8 @@ const router = Router();
 
 // Get monitoring dashboard
 router.get('/dashboard',
-  rateLimitPresets.healthCheck,
-  authenticateToken,
+  rateLimitPresets.read,
+  authenticate,
   async (req: Request, res: Response) => {
     try {
       const correlationId = (req as any).correlationId;
@@ -63,8 +63,8 @@ router.get('/dashboard',
 
 // Get metrics for all services
 router.get('/metrics',
-  rateLimitPresets.healthCheck,
-  authenticateToken,
+  rateLimitPresets.read,
+  authenticate,
   async (req: Request, res: Response) => {
     try {
       const { service, metric, limit = 100 } = req.query;
@@ -125,7 +125,7 @@ router.get('/metrics',
 // Record custom metric
 router.post('/metrics',
   rateLimitPresets.auth,
-  authenticateToken,
+  authenticate,
   async (req: Request, res: Response) => {
     try {
       const { name, value, labels = {}, type = 'gauge' } = req.body;
@@ -179,8 +179,8 @@ router.post('/metrics',
 
 // Get logs for services
 router.get('/logs',
-  rateLimitPresets.healthCheck,
-  authenticateToken,
+  rateLimitPresets.read,
+  authenticate,
   async (req: Request, res: Response) => {
     try {
       const { service, level, limit = 100 } = req.query;
@@ -243,7 +243,7 @@ router.get('/logs',
 // Record custom log entry
 router.post('/logs',
   rateLimitPresets.auth,
-  authenticateToken,
+  authenticate,
   async (req: Request, res: Response) => {
     try {
       const { level, message, service, metadata = {} } = req.body;
@@ -297,8 +297,8 @@ router.post('/logs',
 
 // Get active alerts
 router.get('/alerts',
-  rateLimitPresets.healthCheck,
-  authenticateToken,
+  rateLimitPresets.read,
+  authenticate,
   async (req: Request, res: Response) => {
     try {
       const { severity, service } = req.query;
@@ -361,7 +361,7 @@ router.get('/alerts',
 // Acknowledge an alert
 router.post('/alerts/:alertId/acknowledge',
   rateLimitPresets.auth,
-  authenticateToken,
+  authenticate,
   async (req: Request, res: Response) => {
     try {
       const { alertId } = req.params;
@@ -416,7 +416,7 @@ router.post('/alerts/:alertId/acknowledge',
 // Resolve an alert
 router.post('/alerts/:alertId/resolve',
   rateLimitPresets.auth,
-  authenticateToken,
+  authenticate,
   async (req: Request, res: Response) => {
     try {
       const { alertId } = req.params;
@@ -474,7 +474,7 @@ router.post('/alerts/:alertId/resolve',
 
 // Get comprehensive system health
 router.get('/health/system',
-  rateLimitPresets.healthCheck,
+  rateLimitPresets.read,
   async (req: Request, res: Response) => {
     try {
       const correlationId = (req as any).correlationId;
@@ -509,8 +509,8 @@ router.get('/health/system',
 
 // Get performance metrics
 router.get('/performance',
-  rateLimitPresets.healthCheck,
-  authenticateToken,
+  rateLimitPresets.read,
+  authenticate,
   async (req: Request, res: Response) => {
     try {
       const correlationId = (req as any).correlationId;
@@ -553,7 +553,7 @@ router.get('/performance',
 
 // Export metrics in Prometheus format
 router.get('/export/prometheus',
-  rateLimitPresets.healthCheck,
+  rateLimitPresets.read,
   async (req: Request, res: Response) => {
     try {
       const correlationId = (req as any).correlationId;

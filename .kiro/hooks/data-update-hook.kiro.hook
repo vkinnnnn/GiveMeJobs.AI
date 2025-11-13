@@ -1,0 +1,26 @@
+{
+  "enabled": true,
+  "name": "Continuous Data Update",
+  "description": "Automatically updates project files with fresh data when configuration or data-related files are modified",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "packages/backend/src/config/**/*.ts",
+      "packages/backend/src/services/**/*.ts",
+      "packages/backend/src/models/**/*.ts",
+      "packages/backend/src/controllers/**/*.ts",
+      ".env",
+      ".env.*",
+      "docker-compose*.yml",
+      "packages/frontend/src/config/**/*.ts",
+      "packages/frontend/src/services/**/*.ts",
+      "scripts/**/*.sql",
+      "scripts/**/*.sh"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A data-related file has been modified. Please perform the following data update tasks:\n\n1. Check if any database schemas or models have changed and update related files accordingly\n2. Verify that API endpoints are synchronized with the latest data structures\n3. Update any cached data or configuration that might be affected\n4. Refresh external API integrations if configuration has changed\n5. Update documentation files that reference the modified data structures\n6. Run any necessary data migration scripts if database changes are detected\n7. Validate that frontend components are compatible with backend data changes\n8. Update test data and fixtures to match new data structures\n\nFocus on maintaining data consistency across the entire application stack. Only make changes that are necessary to keep the system synchronized and functional."
+  }
+}

@@ -1,0 +1,380 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: postgresql-backup
+  namespace: givemejobs-prod
+  labels:
+    app.kubernetes.io/name: postgresql-backup
+    app.kubernetes.io/component: backup
+spec:
+  schedule: "0 2 * * *"  # Daily at 2 AM
+  timeZone: "UTC"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: postgresql-backup
+            app.kubernetes.io/component: backup
+        spec:
+          restartPolicy: OnFailure
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1001
+            runAsGroup: 1001
+            fsGroup: 1001
+          containers:
+          - name: postgresql-backup
+            image: postgres:15-alpine
+            imagePullPolicy: Always
+            command:
+            - /bin/sh
+            - -c
+            - |
+              # Install required tools
+              apk add --no-cache aws-cli curl
+              
+              # Copy backup script
+              cp /scripts/backup-postgresql.sh /tmp/backup-postgresql.sh
+              chmod +x /tmp/backup-postgresql.sh
+              
+              # Execute backup
+              /tmp/backup-postgresql.sh
+            env:
+            - name: POSTGRES_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: givemejobs-config
+                  key: POSTGRES_HOST
+            - name: POSTGRES_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: givemejobs-config
+                  key: POSTGRES_PORT
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: givemejobs-config
+                  key: POSTGRES_DB
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: givemejobs-secrets
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: givemejobs-secrets
+                  key: POSTGRES_PASSWORD
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: backup-secrets
+                  key: AWS_ACCESS_KEY_ID
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: backup-secrets
+                  key: AWS_SECRET_ACCESS_KEY
+            - name: AWS_DEFAULT_REGION
+              value: "us-east-1"
+            - name: SLACK_WEBHOOK_URL
+              valueFrom:
+                secretKeyRef:
+                  name: backup-secrets
+                  key: SLACK_WEBHOOK_URL
+                  optional: true
+            - name: NOTIFICATION_EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: backup-secrets
+                  key: NOTIFICATION_EMAIL
+                  optional: true
+            resources:
+              requests:
+                cpu: 100m
+                memory: 256Mi
+              limits:
+                cpu: 500m
+                memory: 1Gi
+            volumeMounts:
+            - name: backup-scripts
+              mountPath: /scripts
+              readOnly: true
+            - name: backup-storage
+              mountPath: /backups
+          volumes:
+          - name: backup-scripts
+            configMap:
+              name: backup-scripts
+              defaultMode: 0755
+          - name: backup-storage
+            persistentVolumeClaim:
+              claimName: backup-storage-pvc
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: mongodb-backup
+  namespace: givemejobs-prod
+  labels:
+    app.kubernetes.io/name: mongodb-backup
+    app.kubernetes.io/component: backup
+spec:
+  schedule: "0 3 * * *"  # Daily at 3 AM
+  timeZone: "UTC"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: mongodb-backup
+            app.kubernetes.io/component: backup
+        spec:
+          restartPolicy: OnFailure
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1001
+            runAsGroup: 1001
+            fsGroup: 1001
+          containers:
+          - name: mongodb-backup
+            image: mongo:7-jammy
+            imagePullPolicy: Always
+            command:
+            - /bin/bash
+            - -c
+            - |
+              # Install required tools
+              apt-get update && apt-get install -y awscli curl
+              
+              # Copy backup script
+              cp /scripts/backup-mongodb.sh /tmp/backup-mongodb.sh
+              chmod +x /tmp/backup-mongodb.sh
+              
+              # Execute backup
+              /tmp/backup-mongodb.sh
+            env:
+            - name: MONGO_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: givemejobs-config
+                  key: MONGO_HOST
+            - name: MONGO_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: givemejobs-config
+                  key: MONGO_PORT
+            - name: MONGO_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: givemejobs-config
+                  key: MONGO_DB
+            - name: MONGO_USER
+              valueFrom:
+                secretKeyRef:
+                  name: givemejobs-secrets
+                  key: MONGO_USER
+            - name: MONGO_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: givemejobs-secrets
+                  key: MONGO_PASSWORD
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: backup-secrets
+                  key: AWS_ACCESS_KEY_ID
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: backup-secrets
+                  key: AWS_SECRET_ACCESS_KEY
+            - name: AWS_DEFAULT_REGION
+              value: "us-east-1"
+            - name: SLACK_WEBHOOK_URL
+              valueFrom:
+                secretKeyRef:
+                  name: backup-secrets
+                  key: SLACK_WEBHOOK_URL
+                  optional: true
+            - name: NOTIFICATION_EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: backup-secrets
+                  key: NOTIFICATION_EMAIL
+                  optional: true
+            resources:
+              requests:
+                cpu: 100m
+                memory: 256Mi
+              limits:
+                cpu: 500m
+                memory: 1Gi
+            volumeMounts:
+            - name: backup-scripts
+              mountPath: /scripts
+              readOnly: true
+            - name: backup-storage
+              mountPath: /backups
+          volumes:
+          - name: backup-scripts
+            configMap:
+              name: backup-scripts
+              defaultMode: 0755
+          - name: backup-storage
+            persistentVolumeClaim:
+              claimName: backup-storage-pvc
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: application-data-backup
+  namespace: givemejobs-prod
+  labels:
+    app.kubernetes.io/name: application-data-backup
+    app.kubernetes.io/component: backup
+spec:
+  schedule: "0 4 * * *"  # Daily at 4 AM
+  timeZone: "UTC"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: application-data-backup
+            app.kubernetes.io/component: backup
+        spec:
+          restartPolicy: OnFailure
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1001
+            runAsGroup: 1001
+            fsGroup: 1001
+          containers:
+          - name: application-data-backup
+            image: alpine:3.18
+            imagePullPolicy: Always
+            command:
+            - /bin/sh
+            - -c
+            - |
+              # Install required tools
+              apk add --no-cache aws-cli curl tar gzip
+              
+              DATE=$(date +%Y%m%d_%H%M%S)
+              BACKUP_NAME="application_data_backup_${DATE}"
+              
+              # Create backup directory
+              mkdir -p /backups/application-data
+              
+              # Backup uploaded files and logs
+              echo "Creating application data backup..."
+              tar -czf "/backups/application-data/${BACKUP_NAME}.tar.gz" \
+                -C /app-data . || echo "Warning: Some files may not be accessible"
+              
+              # Upload to S3
+              echo "Uploading to S3..."
+              aws s3 cp "/backups/application-data/${BACKUP_NAME}.tar.gz" \
+                "s3://givemejobs-backups/application-data/${BACKUP_NAME}.tar.gz" \
+                --server-side-encryption AES256
+              
+              # Cleanup local backup
+              rm -f "/backups/application-data/${BACKUP_NAME}.tar.gz"
+              
+              echo "Application data backup completed successfully"
+            env:
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: backup-secrets
+                  key: AWS_ACCESS_KEY_ID
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: backup-secrets
+                  key: AWS_SECRET_ACCESS_KEY
+            - name: AWS_DEFAULT_REGION
+              value: "us-east-1"
+            resources:
+              requests:
+                cpu: 50m
+                memory: 128Mi
+              limits:
+                cpu: 200m
+                memory: 512Mi
+            volumeMounts:
+            - name: backup-storage
+              mountPath: /backups
+            - name: app-uploads
+              mountPath: /app-data/uploads
+              readOnly: true
+            - name: app-logs
+              mountPath: /app-data/logs
+              readOnly: true
+          volumes:
+          - name: backup-storage
+            persistentVolumeClaim:
+              claimName: backup-storage-pvc
+          - name: app-uploads
+            persistentVolumeClaim:
+              claimName: app-uploads-pvc
+          - name: app-logs
+            persistentVolumeClaim:
+              claimName: app-logs-pvc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: backup-storage-pvc
+  namespace: givemejobs-prod
+  labels:
+    app.kubernetes.io/name: backup-storage
+    app.kubernetes.io/component: storage
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Gi
+  storageClassName: gp3
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backup-scripts
+  namespace: givemejobs-prod
+  labels:
+    app.kubernetes.io/name: backup-scripts
+    app.kubernetes.io/component: config
+data:
+  backup-postgresql.sh: |
+    # PostgreSQL backup script content would be inserted here
+    # (Content from backup/scripts/backup-postgresql.sh)
+  backup-mongodb.sh: |
+    # MongoDB backup script content would be inserted here
+    # (Content from backup/scripts/backup-mongodb.sh)
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: backup-secrets
+  namespace: givemejobs-prod
+  labels:
+    app.kubernetes.io/name: backup-secrets
+    app.kubernetes.io/component: secrets
+type: Opaque
+stringData:
+  AWS_ACCESS_KEY_ID: "REPLACE_WITH_ACTUAL_ACCESS_KEY"
+  AWS_SECRET_ACCESS_KEY: "REPLACE_WITH_ACTUAL_SECRET_KEY"
+  SLACK_WEBHOOK_URL: "REPLACE_WITH_ACTUAL_WEBHOOK_URL"
+  NOTIFICATION_EMAIL: "backups@givemejobs.ai"

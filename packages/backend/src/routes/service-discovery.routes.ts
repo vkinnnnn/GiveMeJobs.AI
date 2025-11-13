@@ -8,7 +8,7 @@
 import { Router, Request, Response } from 'express';
 import { serviceDiscoveryService } from '../services/service-discovery.service';
 import { loadBalancerService } from '../services/load-balancer.service';
-import { authenticateToken } from '../middleware/auth.middleware';
+import { authenticate } from '../middleware/auth.middleware';
 import { rateLimitPresets } from '../middleware/rate-limit.middleware';
 import logger from '../services/logger.service';
 
@@ -21,7 +21,7 @@ const router = Router();
 // Register a new service instance
 router.post('/services/register',
   rateLimitPresets.auth,
-  authenticateToken,
+  authenticate,
   async (req: Request, res: Response) => {
     try {
       const correlationId = (req as any).correlationId;
@@ -98,7 +98,7 @@ router.post('/services/register',
 // Deregister a service instance
 router.delete('/services/:instanceId',
   rateLimitPresets.auth,
-  authenticateToken,
+  authenticate,
   async (req: Request, res: Response) => {
     try {
       const { instanceId } = req.params;
@@ -152,8 +152,8 @@ router.delete('/services/:instanceId',
 
 // List all services and instances
 router.get('/services',
-  rateLimitPresets.healthCheck,
-  authenticateToken,
+  rateLimitPresets.read,
+  authenticate,
   async (req: Request, res: Response) => {
     try {
       const correlationId = (req as any).correlationId;
@@ -192,8 +192,8 @@ router.get('/services',
 
 // Get instances for a specific service
 router.get('/services/:serviceName/instances',
-  rateLimitPresets.healthCheck,
-  authenticateToken,
+  rateLimitPresets.read,
+  authenticate,
   async (req: Request, res: Response) => {
     try {
       const { serviceName } = req.params;
@@ -237,8 +237,8 @@ router.get('/services/:serviceName/instances',
 
 // Get service discovery statistics
 router.get('/services/stats',
-  rateLimitPresets.healthCheck,
-  authenticateToken,
+  rateLimitPresets.read,
+  authenticate,
   async (req: Request, res: Response) => {
     try {
       const correlationId = (req as any).correlationId;
@@ -281,8 +281,8 @@ router.get('/services/stats',
 
 // Get load balancer statistics
 router.get('/load-balancer/stats',
-  rateLimitPresets.healthCheck,
-  authenticateToken,
+  rateLimitPresets.read,
+  authenticate,
   async (req: Request, res: Response) => {
     try {
       const { serviceName } = req.query;
@@ -322,7 +322,7 @@ router.get('/load-balancer/stats',
 
 // Get health status of all services
 router.get('/health-status',
-  rateLimitPresets.healthCheck,
+  rateLimitPresets.read,
   async (req: Request, res: Response) => {
     try {
       const correlationId = (req as any).correlationId;
@@ -353,7 +353,7 @@ router.get('/health-status',
 // Reset load balancer statistics
 router.post('/load-balancer/reset-stats',
   rateLimitPresets.auth,
-  authenticateToken,
+  authenticate,
   async (req: Request, res: Response) => {
     try {
       const { serviceName } = req.body;
@@ -403,7 +403,7 @@ router.post('/load-balancer/reset-stats',
 
 // Comprehensive health check for all services
 router.get('/health/comprehensive',
-  rateLimitPresets.healthCheck,
+  rateLimitPresets.read,
   async (req: Request, res: Response) => {
     try {
       const correlationId = (req as any).correlationId;
@@ -447,8 +447,8 @@ router.get('/health/comprehensive',
 
 // Test service discovery and load balancing
 router.post('/test/load-balancing',
-  rateLimitPresets.healthCheck,
-  authenticateToken,
+  rateLimitPresets.read,
+  authenticate,
   async (req: Request, res: Response) => {
     try {
       const { serviceName, requestCount = 10 } = req.body;

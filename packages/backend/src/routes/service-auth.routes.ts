@@ -7,7 +7,7 @@
 
 import { Router, Request, Response } from 'express';
 import { serviceAuthService } from '../services/service-auth.service';
-import { authenticateToken } from '../middleware/auth.middleware';
+import { authenticate } from '../middleware/auth.middleware';
 import { authenticateService, requireServicePermission } from '../middleware/service-auth.middleware';
 import { rateLimitPresets } from '../middleware/rate-limit.middleware';
 import logger from '../services/logger.service';
@@ -19,7 +19,7 @@ const router = Router();
  */
 router.post('/token/generate',
   rateLimitPresets.auth,
-  authenticateToken, // Require user authentication for token generation
+  authenticate, // Require user authentication for token generation
   async (req: Request, res: Response) => {
     try {
       const { serviceId } = req.body;
@@ -191,7 +191,7 @@ router.post('/token/validate',
  */
 router.post('/token/revoke',
   rateLimitPresets.auth,
-  authenticateToken,
+  authenticate,
   async (req: Request, res: Response) => {
     try {
       const { token } = req.body;
@@ -255,7 +255,7 @@ router.post('/token/revoke',
  */
 router.post('/services/register',
   rateLimitPresets.auth,
-  authenticateToken,
+  authenticate,
   async (req: Request, res: Response) => {
     try {
       const { serviceId, serviceName, permissions } = req.body;
@@ -316,8 +316,8 @@ router.post('/services/register',
  * List all services
  */
 router.get('/services',
-  rateLimitPresets.healthCheck,
-  authenticateToken,
+  rateLimitPresets.read,
+  authenticate,
   async (req: Request, res: Response) => {
     try {
       const correlationId = (req as any).correlationId;
@@ -358,8 +358,8 @@ router.get('/services',
  * Get service statistics
  */
 router.get('/services/stats',
-  rateLimitPresets.healthCheck,
-  authenticateToken,
+  rateLimitPresets.read,
+  authenticate,
   async (req: Request, res: Response) => {
     try {
       const correlationId = (req as any).correlationId;
@@ -401,7 +401,7 @@ router.get('/services/stats',
  */
 router.post('/services/:serviceId/deactivate',
   rateLimitPresets.auth,
-  authenticateToken,
+  authenticate,
   async (req: Request, res: Response) => {
     try {
       const { serviceId } = req.params;
@@ -458,7 +458,7 @@ router.post('/services/:serviceId/deactivate',
  */
 router.post('/services/:serviceId/activate',
   rateLimitPresets.auth,
-  authenticateToken,
+  authenticate,
   async (req: Request, res: Response) => {
     try {
       const { serviceId } = req.params;
@@ -514,7 +514,7 @@ router.post('/services/:serviceId/activate',
  * Test endpoint for service authentication
  */
 router.get('/test',
-  rateLimitPresets.healthCheck,
+  rateLimitPresets.read,
   authenticateService,
   requireServicePermission('read:test'),
   async (req: Request, res: Response) => {

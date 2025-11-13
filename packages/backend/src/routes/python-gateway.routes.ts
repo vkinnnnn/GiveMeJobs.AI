@@ -7,7 +7,7 @@
 
 import { Router, Request, Response } from 'express';
 import { pythonServiceRegistry } from '../services/python-service-client';
-import { authenticateToken } from '../middleware/auth.middleware';
+import { authenticate } from '../middleware/enhanced-auth.middleware';
 import { setServiceContext } from '../middleware/service-integration.middleware';
 import { rateLimitPresets } from '../middleware/rate-limit.middleware';
 import logger from '../services/logger.service';
@@ -20,8 +20,8 @@ const router = Router();
 
 // Generate resume using AI
 router.post('/documents/generate-resume',
-  rateLimitPresets.aiGeneration,
-  authenticateToken,
+  rateLimitPresets.expensive,
+  authenticate,
   setServiceContext('document-service', 'generate-resume'),
   async (req: Request, res: Response) => {
     try {
@@ -77,8 +77,8 @@ router.post('/documents/generate-resume',
 
 // Process document upload
 router.post('/documents/process',
-  rateLimitPresets.fileUpload,
-  authenticateToken,
+  rateLimitPresets.write,
+  authenticate,
   setServiceContext('document-service', 'process-document'),
   async (req: Request, res: Response) => {
     try {
@@ -137,8 +137,8 @@ router.post('/documents/process',
 
 // Semantic job search
 router.post('/jobs/semantic-search',
-  rateLimitPresets.search,
-  authenticateToken,
+  rateLimitPresets.api,
+  authenticate,
   setServiceContext('semantic-search-service', 'job-search'),
   async (req: Request, res: Response) => {
     try {
@@ -230,8 +230,8 @@ router.post('/jobs/semantic-search',
 
 // Get user analytics
 router.get('/analytics/user/:userId',
-  rateLimitPresets.analytics,
-  authenticateToken,
+  rateLimitPresets.read,
+  authenticate,
   setServiceContext('analytics-service', 'user-analytics'),
   async (req: Request, res: Response) => {
     try {
@@ -285,8 +285,8 @@ router.get('/analytics/user/:userId',
 
 // Generate insights
 router.post('/analytics/insights',
-  rateLimitPresets.analytics,
-  authenticateToken,
+  rateLimitPresets.expensive,
+  authenticate,
   setServiceContext('analytics-service', 'generate-insights'),
   async (req: Request, res: Response) => {
     try {
@@ -346,7 +346,7 @@ router.post('/analytics/insights',
 
 // Check health of all Python services
 router.get('/services/health',
-  rateLimitPresets.healthCheck,
+  rateLimitPresets.read,
   async (req: Request, res: Response) => {
     try {
       const healthResults = await pythonServiceRegistry.healthCheckAll();
@@ -382,7 +382,7 @@ router.get('/services/health',
 
 // Get service statistics
 router.get('/services/stats',
-  rateLimitPresets.healthCheck,
+  rateLimitPresets.read,
   async (req: Request, res: Response) => {
     try {
       const stats = pythonServiceRegistry.getAllStats();

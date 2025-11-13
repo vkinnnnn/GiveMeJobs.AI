@@ -20,10 +20,11 @@ const app = express();
 const httpServer = createServer(app);
 
 // Sentry request handler must be the first middleware (only if Sentry is configured)
-if (sentryEnabled) {
-  app.use(Sentry.requestHandler());
-  app.use(Sentry.tracingHandler());
-}
+// Temporarily disabled due to version compatibility issues
+// if (sentryEnabled) {
+//   app.use(Sentry.Handlers.requestHandler());
+//   app.use(Sentry.Handlers.tracingHandler());
+// }
 
 // Logging middleware
 import { requestLoggingMiddleware, errorLoggingMiddleware } from './middleware/logging.middleware';
@@ -195,9 +196,10 @@ app.use('/api/service-discovery', serviceDiscoveryRoutes);
 app.use('/api/monitoring', monitoringRoutes);
 
 // Sentry error handler must be before other error handlers (only if Sentry is configured)
-if (sentryEnabled) {
-  app.use(Sentry.errorHandler());
-}
+// Temporarily disabled due to version compatibility issues
+// if (sentryEnabled) {
+//   app.use(Sentry.Handlers.errorHandler());
+// }
 
 // Error handling middleware
 import { errorHandler, notFoundHandler } from './middleware/error-handler.middleware';
