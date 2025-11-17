@@ -124,8 +124,9 @@
         "GRAFANA_URL": "${GRAFANA_URL}",
         "GRAFANA_API_KEY": "${GRAFANA_API_KEY}"
       },
-      "disabled": false,
-      "autoApprove": ["get_dashboards", "query_datasource"]
+      "disabled": true,
+      "autoApprove": ["get_dashboards", "query_datasource"],
+      "note": "Disabled - mcp-server-grafana package not available in registry. Use Prometheus MCP server for metrics or implement custom Grafana integration."
     }
   }
 }
