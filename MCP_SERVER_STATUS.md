@@ -23,81 +23,112 @@ The Grafana server is now marked as `"disabled": true` to prevent connection err
 
 ## 📊 MCP Server Status
 
-### ✅ Working MCP Servers
+### ✅ Working MCP Servers (Currently Configured)
 
 These servers are confirmed to be available and working:
 
-1. **AWS Documentation** (`awslabs.aws-documentation-mcp-server`)
+1. **Filesystem** (`mcp-server-filesystem`)
    - Status: ✅ Available
-   - Purpose: Search AWS documentation
-   - Package: Official AWS Labs package
+   - Purpose: File operations and directory management
+   - Requires: `ALLOWED_DIRECTORIES`
+   - Tools: read_file, list_directory, search_files
 
-2. **PostgreSQL** (`mcp-server-postgres`)
-   - Status: ✅ Available
-   - Purpose: Database queries and management
-   - Requires: `POSTGRES_CONNECTION_STRING`
-
-3. **GitHub** (`mcp-server-github`)
+2. **GitHub** (`mcp-server-github`)
    - Status: ✅ Available
    - Purpose: Repository management, issues, PRs
    - Requires: `GITHUB_PERSONAL_ACCESS_TOKEN`
+   - Tools: search_repositories, get_repository, list_issues, get_issue
 
-4. **Filesystem** (`mcp-server-filesystem`)
+3. **PostgreSQL** (`mcp-server-postgres`)
    - Status: ✅ Available
-   - Purpose: File operations
-   - Requires: `ALLOWED_DIRECTORIES`
+   - Purpose: Database queries and management
+   - Requires: `POSTGRES_CONNECTION_STRING`
+   - Tools: list_tables, describe_table, query
 
-5. **Docker** (`mcp-server-docker`)
+4. **Fetch** (`mcp-server-fetch`)
    - Status: ✅ Available
-   - Purpose: Container management
+   - Purpose: HTTP requests and web content fetching
    - No credentials required
+   - Tools: fetch
 
-6. **Kubernetes** (`mcp-server-kubernetes`)
+5. **Memory** (`mcp-server-memory`)
+   - Status: ✅ Available
+   - Purpose: Knowledge graph and entity management
+   - No credentials required
+   - Tools: create_entities, create_relations, search_nodes
+
+6. **Git** (`mcp-server-git`)
+   - Status: ✅ Available
+   - Purpose: Git operations (status, diff, log, commit)
+   - No credentials required
+   - Tools: git_status, git_diff, git_log, git_commit
+
+7. **Docker** (`mcp-server-docker`)
+   - Status: ✅ Available
+   - Purpose: Container management and logs
+   - No credentials required
+   - Tools: list_containers, list_images, fetch_container_logs
+
+8. **Kubernetes** (`mcp-server-kubernetes`)
    - Status: ✅ Available
    - Purpose: K8s cluster management
    - Uses kubeconfig
+   - Tools: kubectl_get_by_name, kubectl_describe, kubectl_get_by_kind_in_namespace
 
-### ⚠️ Potentially Unavailable Servers
+9. **OpenAI Enhanced** (`mcp-openai`)
+   - Status: ✅ Available
+   - Purpose: OpenAI API cost tracking and project management
+   - Requires: `OPENAI_API_KEY`
+   - Tools: get_costs, get_projects
 
-These servers may not exist or may have different package names:
+### ❌ Removed Servers (Not Available in Registry)
 
-1. **Grafana** (`mcp-server-grafana`)
-   - Status: ❌ Not Available
-   - Action: **Disabled**
-   - Alternative: Use Prometheus MCP server for metrics
+These servers were removed because they don't exist in the Python package registry:
 
-2. **Prometheus** (`mcp-server-prometheus`)
-   - Status: ⚠️ Unverified
-   - May not exist as a standalone package
-   - Alternative: Use HTTP requests to Prometheus API
+1. **AWS Documentation** (`awslabs.aws-documentation-mcp-server`)
+   - Status: ❌ Removed
+   - Reason: Package not found in registry
+   - Alternative: Use Fetch MCP server to access AWS docs via web
 
-3. **Redis** (`mcp-server-redis`)
-   - Status: ⚠️ Unverified
-   - May not exist as a standalone package
+2. **Grafana** (`mcp-server-grafana`)
+   - Status: ❌ Removed
+   - Reason: Package not found in registry
+   - Alternative: Use Fetch MCP server for Grafana API calls
 
-4. **MongoDB** (`mcp-server-mongodb`)
-   - Status: ⚠️ Unverified
-   - May not exist as a standalone package
+3. **Prometheus** (`mcp-server-prometheus`)
+   - Status: ❌ Removed
+   - Reason: Package not found in registry
+   - Alternative: Use Fetch MCP server for Prometheus API calls
 
-5. **OpenAI Enhanced** (`mcp-server-openai`)
-   - Status: ⚠️ Unverified
-   - May exist but needs verification
+4. **Redis** (`mcp-server-redis`)
+   - Status: ❌ Removed
+   - Reason: Package not found in registry
+   - Alternative: Use direct Redis client or Fetch for Redis HTTP API
+
+5. **MongoDB** (`mcp-server-mongodb`)
+   - Status: ❌ Removed
+   - Reason: Package not found in registry
+   - Alternative: Use direct MongoDB client or create custom MCP server
 
 6. **Pinecone** (`mcp-server-pinecone`)
-   - Status: ⚠️ Unverified
-   - May not exist as a standalone package
+   - Status: ❌ Removed
+   - Reason: Package not found in registry
+   - Alternative: Use Fetch MCP server for Pinecone API calls
 
 7. **Security Scanner** (`mcp-server-security`)
-   - Status: ⚠️ Unverified
-   - May not exist as a standalone package
+   - Status: ❌ Removed
+   - Reason: Package not found in registry
+   - Alternative: Create custom security scanning MCP server
 
 8. **Terraform** (`mcp-server-terraform`)
-   - Status: ⚠️ Unverified
-   - May not exist as a standalone package
+   - Status: ❌ Removed
+   - Reason: Package not found in registry
+   - Alternative: Use Git MCP server for Terraform files
 
 9. **Sentry** (`mcp-server-sentry`)
-   - Status: ⚠️ Unverified
-   - May not exist as a standalone package
+   - Status: ❌ Removed
+   - Reason: Package not found in registry
+   - Alternative: Use Fetch MCP server for Sentry API calls
 
 ---
 
@@ -257,28 +288,29 @@ After making changes to `.kiro/settings/mcp.json`:
 
 ---
 
-## ✅ Current Configuration Status
+## ✅ Current Configuration Status (Updated)
 
-### Enabled Servers (Verified)
-- ✅ AWS Documentation
-- ✅ PostgreSQL
-- ✅ GitHub
-- ✅ Filesystem
-- ✅ Docker
-- ✅ Kubernetes
+### Enabled Servers (Verified Working)
+- ✅ **Filesystem** - File operations and directory management
+- ✅ **GitHub** - Repository management, issues, PRs
+- ✅ **PostgreSQL** - Database queries and management
+- ✅ **Fetch** - HTTP requests and web content fetching
+- ✅ **Memory** - Knowledge graph and entity management
+- ✅ **Git** - Git operations (status, diff, log, commit)
+- ✅ **Docker** - Container management and logs
+- ✅ **Kubernetes** - K8s cluster management
+- ✅ **OpenAI Enhanced** - OpenAI API cost tracking and project management
 
-### Disabled Servers
-- ❌ Grafana (package not available)
-
-### Unverified Servers (May Need Disabling)
-- ⚠️ Prometheus
-- ⚠️ Redis
-- ⚠️ MongoDB
-- ⚠️ OpenAI Enhanced
-- ⚠️ Pinecone
-- ⚠️ Security Scanner
-- ⚠️ Terraform
-- ⚠️ Sentry
+### Removed Servers (Not Available)
+- ❌ AWS Documentation (awslabs.aws-documentation-mcp-server)
+- ❌ Grafana (mcp-server-grafana)
+- ❌ Prometheus (mcp-server-prometheus)
+- ❌ Redis (mcp-server-redis)
+- ❌ MongoDB (mcp-server-mongodb)
+- ❌ Pinecone (mcp-server-pinecone)
+- ❌ Security Scanner (mcp-server-security)
+- ❌ Terraform (mcp-server-terraform)
+- ❌ Sentry (mcp-server-sentry)
 
 ---
 

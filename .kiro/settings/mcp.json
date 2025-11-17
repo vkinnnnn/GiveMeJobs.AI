@@ -1,132 +1,70 @@
 {
   "mcpServers": {
-    "aws-docs": {
-      "command": "uvx",
-      "args": ["awslabs.aws-documentation-mcp-server@latest"],
-      "env": {
-        "FASTMCP_LOG_LEVEL": "${FASTMCP_LOG_LEVEL}"
-      },
-      "disabled": false,
-      "autoApprove": ["search_documentation", "get_documentation"]
-    },
-    "postgres": {
-      "command": "uvx",
-      "args": ["mcp-server-postgres@latest"],
-      "env": {
-        "POSTGRES_CONNECTION_STRING": "${POSTGRES_CONNECTION_STRING}"
-      },
-      "disabled": false,
-      "autoApprove": ["list_tables", "describe_table", "query"]
-    },
-    "github": {
-      "command": "uvx", 
-      "args": ["mcp-server-github@latest"],
-      "env": {
-        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}"
-      },
-      "disabled": false,
-      "autoApprove": ["search_repositories", "get_repository", "list_issues", "get_issue"]
-    },
     "filesystem": {
       "command": "uvx",
-      "args": ["mcp-server-filesystem@latest"],
+      "args": ["mcp-server-filesystem"],
       "env": {
         "ALLOWED_DIRECTORIES": "${ALLOWED_DIRECTORIES}"
       },
       "disabled": false,
       "autoApprove": ["read_file", "list_directory", "search_files"]
     },
+    "github": {
+      "command": "uvx",
+      "args": ["mcp-server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}"
+      },
+      "disabled": false,
+      "autoApprove": ["search_repositories", "get_repository", "list_issues", "get_issue"]
+    },
+    "postgres": {
+      "command": "uvx",
+      "args": ["mcp-server-postgres"],
+      "env": {
+        "POSTGRES_CONNECTION_STRING": "${POSTGRES_CONNECTION_STRING}"
+      },
+      "disabled": false,
+      "autoApprove": ["list_tables", "describe_table", "query"]
+    },
+    "fetch": {
+      "command": "uvx",
+      "args": ["mcp-server-fetch"],
+      "disabled": false,
+      "autoApprove": ["fetch"]
+    },
+    "memory": {
+      "command": "uvx",
+      "args": ["mcp-server-memory"],
+      "disabled": false,
+      "autoApprove": ["create_entities", "create_relations", "search_nodes"]
+    },
+    "git": {
+      "command": "uvx",
+      "args": ["mcp-server-git"],
+      "disabled": false,
+      "autoApprove": ["git_status", "git_diff", "git_log", "git_commit"]
+    },
     "docker": {
       "command": "uvx",
-      "args": ["mcp-server-docker@latest"],
+      "args": ["mcp-server-docker"],
       "disabled": false,
-      "autoApprove": ["list_containers", "list_images", "container_logs"]
+      "autoApprove": ["list_containers", "list_images", "fetch_container_logs"]
     },
     "kubernetes": {
       "command": "uvx",
-      "args": ["mcp-server-kubernetes@latest"],
+      "args": ["mcp-server-kubernetes"],
       "disabled": false,
-      "autoApprove": ["get_pods", "get_services", "get_deployments", "describe_pod"]
-    },
-    "prometheus": {
-      "command": "uvx",
-      "args": ["mcp-server-prometheus@latest"],
-      "env": {
-        "PROMETHEUS_URL": "${PROMETHEUS_URL}"
-      },
-      "disabled": false,
-      "autoApprove": ["query", "query_range", "get_metrics"]
-    },
-    "redis": {
-      "command": "uvx",
-      "args": ["mcp-server-redis@latest"],
-      "env": {
-        "REDIS_URL": "${REDIS_URL}"
-      },
-      "disabled": false,
-      "autoApprove": ["get", "keys", "info"]
-    },
-    "mongodb": {
-      "command": "uvx",
-      "args": ["mcp-server-mongodb@latest"],
-      "env": {
-        "MONGODB_URI": "${MONGODB_URI}"
-      },
-      "disabled": false,
-      "autoApprove": ["list_collections", "find", "count"]
+      "autoApprove": ["kubectl_get_by_name", "kubectl_describe", "kubectl_get_by_kind_in_namespace"]
     },
     "openai-enhanced": {
       "command": "uvx",
-      "args": ["mcp-server-openai@latest"],
+      "args": ["mcp-openai"],
       "env": {
         "OPENAI_API_KEY": "${OPENAI_API_KEY}"
       },
       "disabled": false,
-      "autoApprove": ["chat_completion", "create_embedding"]
-    },
-    "pinecone": {
-      "command": "uvx",
-      "args": ["mcp-server-pinecone@latest"],
-      "env": {
-        "PINECONE_API_KEY": "${PINECONE_API_KEY}",
-        "PINECONE_ENVIRONMENT": "${PINECONE_ENVIRONMENT}"
-      },
-      "disabled": false,
-      "autoApprove": ["query", "describe_index", "list_indexes"]
-    },
-    "security-scanner": {
-      "command": "uvx",
-      "args": ["mcp-server-security@latest"],
-      "disabled": false,
-      "autoApprove": ["scan_vulnerabilities", "security_report"]
-    },
-    "terraform": {
-      "command": "uvx",
-      "args": ["mcp-server-terraform@latest"],
-      "disabled": false,
-      "autoApprove": ["plan", "show", "state_list"]
-    },
-    "sentry": {
-      "command": "uvx",
-      "args": ["mcp-server-sentry@latest"],
-      "env": {
-        "SENTRY_AUTH_TOKEN": "${SENTRY_AUTH_TOKEN}",
-        "SENTRY_ORG": "${SENTRY_ORG}",
-        "SENTRY_PROJECT": "${SENTRY_PROJECT}"
-      },
-      "disabled": false,
-      "autoApprove": ["get_issues", "get_events", "get_performance"]
-    },
-    "grafana": {
-      "command": "uvx",
-      "args": ["mcp-server-grafana@latest"],
-      "env": {
-        "GRAFANA_URL": "${GRAFANA_URL}",
-        "GRAFANA_API_KEY": "${GRAFANA_API_KEY}"
-      },
-      "disabled": true,
-      "autoApprove": ["get_dashboards", "query_datasource"],
-      "note": "Disabled - mcp-server-grafana package not available in registry. Use Prometheus MCP server for metrics or implement custom Grafana integration."
+      "autoApprove": ["get_costs", "get_projects"]
     }
   }
 }
