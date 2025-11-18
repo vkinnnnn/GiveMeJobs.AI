@@ -1,32 +1,5 @@
 {
   "mcpServers": {
-    "filesystem": {
-      "command": "uvx",
-      "args": ["mcp-server-filesystem"],
-      "env": {
-        "ALLOWED_DIRECTORIES": "${ALLOWED_DIRECTORIES}"
-      },
-      "disabled": false,
-      "autoApprove": ["read_file", "list_directory", "search_files"]
-    },
-    "github": {
-      "command": "uvx",
-      "args": ["mcp-server-github"],
-      "env": {
-        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}"
-      },
-      "disabled": false,
-      "autoApprove": ["search_repositories", "get_repository", "list_issues", "get_issue"]
-    },
-    "postgres": {
-      "command": "uvx",
-      "args": ["mcp-server-postgres"],
-      "env": {
-        "POSTGRES_CONNECTION_STRING": "${POSTGRES_CONNECTION_STRING}"
-      },
-      "disabled": false,
-      "autoApprove": ["list_tables", "describe_table", "query"]
-    },
     "fetch": {
       "command": "uvx",
       "args": ["mcp-server-fetch"],
@@ -34,37 +7,31 @@
       "autoApprove": ["fetch"]
     },
     "memory": {
-      "command": "uvx",
-      "args": ["mcp-server-memory"],
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-memory"],
       "disabled": false,
-      "autoApprove": ["create_entities", "create_relations", "search_nodes"]
+      "autoApprove": ["create_entities", "create_relations", "search_nodes", "open_nodes", "read_graph"]
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}"
+      },
+      "disabled": false,
+      "autoApprove": ["search_repositories", "get_file_contents", "create_or_update_file", "push_files", "create_issue"]
     },
     "git": {
       "command": "uvx",
-      "args": ["mcp-server-git"],
+      "args": ["mcp-server-git", "--repository", "C:\\Users\\chira\\.kiro"],
       "disabled": false,
-      "autoApprove": ["git_status", "git_diff", "git_log", "git_commit"]
+      "autoApprove": ["git_status", "git_diff_unstaged", "git_diff_staged", "git_commit", "git_add", "git_log"]
     },
     "docker": {
-      "command": "uvx",
-      "args": ["mcp-server-docker"],
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-docker"],
       "disabled": false,
-      "autoApprove": ["list_containers", "list_images", "fetch_container_logs"]
-    },
-    "kubernetes": {
-      "command": "uvx",
-      "args": ["mcp-server-kubernetes"],
-      "disabled": false,
-      "autoApprove": ["kubectl_get_by_name", "kubectl_describe", "kubectl_get_by_kind_in_namespace"]
-    },
-    "openai-enhanced": {
-      "command": "uvx",
-      "args": ["mcp-openai"],
-      "env": {
-        "OPENAI_API_KEY": "${OPENAI_API_KEY}"
-      },
-      "disabled": false,
-      "autoApprove": ["get_costs", "get_projects"]
+      "autoApprove": ["list_containers", "list_images", "fetch_container_logs", "start_container", "stop_container"]
     }
   }
 }
