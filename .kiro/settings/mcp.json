@@ -26,12 +26,6 @@
       "args": ["mcp-server-git", "--repository", "C:\\Users\\chira\\.kiro"],
       "disabled": false,
       "autoApprove": ["git_status", "git_diff_unstaged", "git_diff_staged", "git_commit", "git_add", "git_log"]
-    },
-    "docker": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-docker"],
-      "disabled": false,
-      "autoApprove": ["list_containers", "list_images", "fetch_container_logs", "start_container", "stop_container"]
     }
   }
 }
