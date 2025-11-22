@@ -1,0 +1,4 @@
+# file: C:\Users\chira\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\pymongo\helpers_shared.py
+# hypothesis_version: 6.148.2
+
+[134, 189, 262, 391, 1000, 9001, 10058, 10107, 11000, 11001, 11600, 11602, 12582, 13435, 13436, '$err', ')', '_', 'authenticate', 'code', 'connectTimeoutMS', 'copydb', 'copydbgetnonce', 'copydbsaslstart', 'createuser', 'errmsg', 'errorLabels', 'getnonce', 'node is recovering', 'ok', 'raw', 'saslcontinue', 'saslstart', 'socketTimeoutMS', 'timeoutMS', 'updateuser', 'writeConcernError', 'writeErrors', '{}_{}']

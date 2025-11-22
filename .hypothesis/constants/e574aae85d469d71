@@ -1,0 +1,4 @@
+# file: C:\Users\chira\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\psycopg\types\array.py
+# hypothesis_version: 6.148.2
+
+[b'"', b'(["\\\\])', b',', b'=', b'NULL', b'[', b'\\1', b'\\\\(.)', b'\\\\\\1', b'{', b'{}', b'}', b'\xff\xff\xff\xff', '!II', '!III', '...', 'ArrayBinaryLoader', 'ArrayLoader', 'base_oid', 'delimiter', 'element_oid', 'oid', 'replace', 'text', 'tuple[int, int, int]', 'tuple[int, int]', 'utf8']

@@ -1,0 +1,4 @@
+# file: C:\Users\chira\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\pymongo\server_description.py
+# hypothesis_version: 6.148.2
+
+[0.0, '_address', '_all_hosts', '_cluster_time', '_election_id', '_error', '_is_readable', '_is_writable', '_last_update_time', '_last_write_date', '_ls_timeout_minutes', '_max_bson_size', '_max_message_size', '_max_wire_version', '_me', '_min_round_trip_time', '_min_wire_version', '_primary', '_replica_set_name', '_round_trip_time', '_server_type', '_set_version', '_tags', '_topology_version', 'details', 'topologyVersion']

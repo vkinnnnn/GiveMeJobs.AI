@@ -1,0 +1,4 @@
+# file: C:\Users\chira\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\psycopg\types\string.py
+# hypothesis_version: 6.148.2
+
+[b'\x00', b" E'", b"'", b'NULL', b'\\', b'\\000', b'\\\\', b'on', b'standard_conforming_strings', '\x00', '"char"', '_escaping', 'ascii', 'bpchar', 'bytea', 'name', 'text', 'utf-8', 'varchar']

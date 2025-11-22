@@ -1,0 +1,4 @@
+# file: C:\Users\chira\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\bson\codec_options.py
+# hypothesis_version: 6.148.2
+
+[101, '__origin__', '_type_marker', 'datetime_conversion', 'dict', 'document_class', 'strict', 'type_registry', 'tz_aware', 'tzinfo', 'uuid_representation', 'uuidrepresentation']

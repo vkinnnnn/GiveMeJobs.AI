@@ -1,0 +1,4 @@
+# file: C:\Users\chira\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\psycopg\types\composite.py
+# hypothesis_version: 6.148.2
+
+[b'"', b'""', b'(', b'()', b'(["\\\\])\\1', b'([\\\\\\"])', b')', b',', b'[",\\\\\\s()]', b'\\1', b'\\1\\1', '!Ii', '_field_types', 'factory', 'fields_types', 'oid', 'record', 'tuple[int, int]']

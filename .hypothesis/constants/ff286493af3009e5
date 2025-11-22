@@ -1,0 +1,4 @@
+# file: C:\Users\chira\.kiro\packages\python-services\src\mcp_servers\base_server.py
+# hypothesis_version: 6.148.2
+
+[-32700, -32603, 1000, '2.0', '://', 'Internal error', 'KEY=', 'PASSWORD=', 'Parse error', 'SECRET=', 'TOKEN=', '[REDACTED]', 'code', 'data', 'error', 'id', 'jsonrpc', 'key=', 'message', 'password=', 'result', 'secret=', 'token=']

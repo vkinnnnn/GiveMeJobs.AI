@@ -1,0 +1,4 @@
+# file: C:\Users\chira\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\pymongo\asynchronous\bulk.py
+# hypothesis_version: 6.148.2
+
+['_id', 'arrayFilters', 'code', 'collation', 'comment', 'document', 'hint', 'let', 'limit', 'multi', 'nInserted', 'nMatched', 'nModified', 'nRemoved', 'nUpserted', 'ok', 'ordered', 'q', 'replace', 'sort', 'u', 'upsert', 'upserted', 'w', 'writeConcern', 'writeConcernError', 'writeConcernErrors', 'writeErrors']

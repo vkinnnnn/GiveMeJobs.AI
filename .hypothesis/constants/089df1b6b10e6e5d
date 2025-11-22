@@ -1,0 +1,4 @@
+# file: C:\Users\chira\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\bson\decimal128.py
+# hypothesis_version: 6.148.2
+
+[-6143, 255, 6144, 6176, 16383, 140737488355327, 281474976710656, 2305807824841605120, 8646911284551352320, 8935141660703064064, 9079256848778919936, 9223231299366420480, 9223372036854775808, '<Q', 'Emax', 'Emin', 'F', 'N', 'NaN', '__high', '__low', 'big', 'capitals', 'clamp', 'flags', 'n', 'prec', 'rounding', 'traps']

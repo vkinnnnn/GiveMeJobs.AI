@@ -1,0 +1,4 @@
+# file: C:\Users\chira\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\pymongo\pool_shared.py
+# hypothesis_version: 6.148.2
+
+[120, 1000, 7200000, '%s:%d: %s', '.sock', 'AF_UNIX', 'KeepAliveInterval', 'KeepAliveTime', 'SOCK_CLOEXEC', 'TCP_KEEPCNT', 'TCP_KEEPIDLE', 'TCP_KEEPINTVL', 'configured timeouts', 'getaddrinfo failed', 'localhost', 'peercert', 'timed out', 'win32']

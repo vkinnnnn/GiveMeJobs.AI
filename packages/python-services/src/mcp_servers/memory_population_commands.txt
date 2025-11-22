@@ -1,0 +1,211 @@
+# Memory Population Commands for GiveMeJobs Platform
+
+# Execute these commands in Kiro to populate Memory MCP
+
+## Command 1: Create main platform entity
+create_entities("GiveMeJobs Platform", "project", "AI-powered job search and application platform with resume tailoring")
+
+## Command 2: Create FastAPI Backend entity
+create_entities("FastAPI Backend", "component", "Python-based backend service with FastAPI, provides REST APIs, handles authentication, job search, resume processing, and AI integration")
+
+## Command 3: Create Next.js Frontend entity
+create_entities("Next.js Frontend", "component", "React-based frontend with Next.js 14, TypeScript, Tailwind CSS, provides user interface for job search, applications, and resume management")
+
+## Command 4: Create PostgreSQL Database entity
+create_entities("PostgreSQL Database", "database", "Primary relational database storing users, applications, jobs, resumes, and system data")
+
+## Command 5: Create MongoDB Database entity
+create_entities("MongoDB Database", "database", "Document database storing job descriptions, parsed resumes, and unstructured data")
+
+## Command 6: Create Redis Cache entity
+create_entities("Redis Cache", "database", "In-memory cache for session management, rate limiting, and performance optimization")
+
+## Command 7: Create OpenAI API entity
+create_entities("OpenAI API", "external-service", "AI service for resume tailoring, job matching, and content generation using GPT-4")
+
+## Command 8: Create Pinecone Vector DB entity
+create_entities("Pinecone Vector DB", "external-service", "Vector database for semantic search and job matching using embeddings")
+
+## Command 9: Create LinkedIn OAuth entity
+create_entities("LinkedIn OAuth", "external-service", "OAuth provider for user authentication and profile import")
+
+## Command 10: Create Adzuna Job API entity
+create_entities("Adzuna Job API", "external-service", "Job board API providing real job listings and search")
+
+## Command 11: Create Resend Email Service entity
+create_entities("Resend Email Service", "external-service", "Transactional email service for notifications and communications")
+
+## Command 12: Create relation: FastAPI Backend -> PostgreSQL Database
+create_relations("FastAPI Backend", "uses", "PostgreSQL Database")
+
+## Command 13: Create relation: FastAPI Backend -> MongoDB Database
+create_relations("FastAPI Backend", "uses", "MongoDB Database")
+
+## Command 14: Create relation: FastAPI Backend -> Redis Cache
+create_relations("FastAPI Backend", "uses", "Redis Cache")
+
+## Command 15: Create relation: FastAPI Backend -> OpenAI API
+create_relations("FastAPI Backend", "integrates-with", "OpenAI API")
+
+## Command 16: Create relation: FastAPI Backend -> Pinecone Vector DB
+create_relations("FastAPI Backend", "integrates-with", "Pinecone Vector DB")
+
+## Command 17: Create relation: FastAPI Backend -> LinkedIn OAuth
+create_relations("FastAPI Backend", "integrates-with", "LinkedIn OAuth")
+
+## Command 18: Create relation: FastAPI Backend -> Adzuna Job API
+create_relations("FastAPI Backend", "integrates-with", "Adzuna Job API")
+
+## Command 19: Create relation: FastAPI Backend -> Resend Email Service
+create_relations("FastAPI Backend", "integrates-with", "Resend Email Service")
+
+## Command 20: Create relation: Next.js Frontend -> FastAPI Backend
+create_relations("Next.js Frontend", "calls", "FastAPI Backend")
+
+## Command 21: Create relation: GiveMeJobs Platform -> FastAPI Backend
+create_relations("GiveMeJobs Platform", "consists-of", "FastAPI Backend")
+
+## Command 22: Create relation: GiveMeJobs Platform -> Next.js Frontend
+create_relations("GiveMeJobs Platform", "consists-of", "Next.js Frontend")
+
+## Command 23: Create relation: GiveMeJobs Platform -> PostgreSQL Database
+create_relations("GiveMeJobs Platform", "consists-of", "PostgreSQL Database")
+
+## Command 24: Create relation: GiveMeJobs Platform -> MongoDB Database
+create_relations("GiveMeJobs Platform", "consists-of", "MongoDB Database")
+
+## Command 25: Create relation: GiveMeJobs Platform -> Redis Cache
+create_relations("GiveMeJobs Platform", "consists-of", "Redis Cache")
+
+## Command 26: Store Authentication API endpoints
+create_entities("API Endpoints - Authentication", "documentation", "API endpoints for Authentication: POST /api/auth/register - Register new user with email and password\nPOST /api/auth/login - Login user and return JWT tokens\nPOST /api/auth/refresh - Refresh access token using refresh token\nPOST /api/auth/logout - Logout user and invalidate tokens\nPOST /api/auth/oauth/linkedin - LinkedIn OAuth authentication\nPOST /api/auth/oauth/google - Google OAuth authentication\nPOST /api/auth/password-reset - Request password reset email\nPOST /api/auth/password-reset/confirm - Confirm password reset with token")
+
+## Command 27: Link Authentication endpoints to backend
+create_relations("FastAPI Backend", "provides", "API Endpoints - Authentication")
+
+## Command 28: Store Users API endpoints
+create_entities("API Endpoints - Users", "documentation", "API endpoints for Users: GET /api/users/me - Get current user profile\nPUT /api/users/me - Update current user profile\nDELETE /api/users/me - Delete current user account\nGET /api/users/{id} - Get user by ID (admin only)\nPUT /api/users/{id} - Update user by ID (admin only)\nGET /api/users - List all users (admin only)")
+
+## Command 29: Link Users endpoints to backend
+create_relations("FastAPI Backend", "provides", "API Endpoints - Users")
+
+## Command 30: Store Jobs API endpoints
+create_entities("API Endpoints - Jobs", "documentation", "API endpoints for Jobs: GET /api/jobs - Search and list jobs with filters\nGET /api/jobs/{id} - Get job details by ID\nPOST /api/jobs/search - Advanced job search with AI matching\nGET /api/jobs/recommendations - Get personalized job recommendations\nPOST /api/jobs/save - Save job to user's saved jobs\nDELETE /api/jobs/save/{id} - Remove job from saved jobs\nGET /api/jobs/saved - Get user's saved jobs")
+
+## Command 31: Link Jobs endpoints to backend
+create_relations("FastAPI Backend", "provides", "API Endpoints - Jobs")
+
+## Command 32: Store Applications API endpoints
+create_entities("API Endpoints - Applications", "documentation", "API endpoints for Applications: GET /api/applications - Get user's job applications\nGET /api/applications/{id} - Get application details\nPOST /api/applications - Create new job application\nPUT /api/applications/{id} - Update application status\nDELETE /api/applications/{id} - Delete application\nGET /api/applications/stats - Get application statistics")
+
+## Command 33: Link Applications endpoints to backend
+create_relations("FastAPI Backend", "provides", "API Endpoints - Applications")
+
+## Command 34: Store Resumes API endpoints
+create_entities("API Endpoints - Resumes", "documentation", "API endpoints for Resumes: GET /api/resumes - List user's resumes\nGET /api/resumes/{id} - Get resume details\nPOST /api/resumes - Upload and parse new resume\nPUT /api/resumes/{id} - Update resume\nDELETE /api/resumes/{id} - Delete resume\nPOST /api/resumes/{id}/tailor - AI-tailor resume for specific job\nGET /api/resumes/{id}/versions - Get resume versions\nPOST /api/resumes/{id}/download - Download resume as PDF")
+
+## Command 35: Link Resumes endpoints to backend
+create_relations("FastAPI Backend", "provides", "API Endpoints - Resumes")
+
+## Command 36: Store Documents API endpoints
+create_entities("API Endpoints - Documents", "documentation", "API endpoints for Documents: GET /api/documents - List user's documents\nGET /api/documents/{id} - Get document details\nPOST /api/documents/upload - Upload document (PDF, DOCX)\nPOST /api/documents/generate - Generate tailored document with AI\nDELETE /api/documents/{id} - Delete document\nGET /api/documents/{id}/download - Download document")
+
+## Command 37: Link Documents endpoints to backend
+create_relations("FastAPI Backend", "provides", "API Endpoints - Documents")
+
+## Command 38: Store AI Services API endpoints
+create_entities("API Endpoints - AI Services", "documentation", "API endpoints for AI Services: POST /api/ai/analyze-resume - Analyze resume and provide feedback\nPOST /api/ai/match-jobs - Match resume to jobs using AI\nPOST /api/ai/generate-cover-letter - Generate AI cover letter\nPOST /api/ai/tailor-resume - Tailor resume for specific job\nPOST /api/ai/chat - AI chat for career advice")
+
+## Command 39: Link AI Services endpoints to backend
+create_relations("FastAPI Backend", "provides", "API Endpoints - AI Services")
+
+## Command 40: Store Analytics API endpoints
+create_entities("API Endpoints - Analytics", "documentation", "API endpoints for Analytics: GET /api/analytics/dashboard - Get user dashboard analytics\nGET /api/analytics/applications - Application analytics\nGET /api/analytics/jobs - Job search analytics\nGET /api/analytics/resume-performance - Resume performance metrics")
+
+## Command 41: Link Analytics endpoints to backend
+create_relations("FastAPI Backend", "provides", "API Endpoints - Analytics")
+
+## Command 42: Store Admin API endpoints
+create_entities("API Endpoints - Admin", "documentation", "API endpoints for Admin: GET /api/admin/users - List all users\nGET /api/admin/stats - System statistics\nPOST /api/admin/users/{id}/disable - Disable user account\nPOST /api/admin/users/{id}/enable - Enable user account\nGET /api/admin/logs - View system logs\nGET /api/admin/health - System health check")
+
+## Command 43: Link Admin endpoints to backend
+create_relations("FastAPI Backend", "provides", "API Endpoints - Admin")
+
+## Command 44: Store System API endpoints
+create_entities("API Endpoints - System", "documentation", "API endpoints for System: GET /api/health - Health check endpoint\nGET /api/version - API version information\nGET /api/docs - OpenAPI documentation\nGET /api/metrics - Prometheus metrics (monitoring)")
+
+## Command 45: Link System endpoints to backend
+create_relations("FastAPI Backend", "provides", "API Endpoints - System")
+
+## Command 46: Store PostgreSQL schema
+create_entities("PostgreSQL Schema", "documentation", "PostgreSQL database tables: users: User accounts and profiles (id, email, password_hash, name, created_at, updated_at)\nresumes: User resumes (id, user_id, title, content, file_path, parsed_data, created_at)\napplications: Job applications (id, user_id, job_id, status, applied_at, notes)\njobs: Job listings cache (id, title, company, description, location, posted_at, source)\nsaved_jobs: User saved jobs (id, user_id, job_id, saved_at)\nsessions: User sessions (id, user_id, token, expires_at)\noauth_connections: OAuth provider connections (id, user_id, provider, provider_id)")
+
+## Command 47: Store MongoDB schema
+create_entities("MongoDB Schema", "documentation", "MongoDB collections: job_descriptions: Full job descriptions from external APIs\nparsed_resumes: Parsed resume content with structure\nembeddings: Vector embeddings for semantic search\nai_generations: AI-generated content history")
+
+## Command 48: Store Redis keys
+create_entities("Redis Keys", "documentation", "Redis key patterns: session:*: User session data\nrate_limit:*: Rate limiting counters\ncache:jobs:*: Cached job search results\nqueue:*: Background job queues")
+
+## Command 49: Link PostgreSQL schema
+create_relations("PostgreSQL Database", "has-schema", "PostgreSQL Schema")
+
+## Command 50: Link MongoDB schema
+create_relations("MongoDB Database", "has-schema", "MongoDB Schema")
+
+## Command 51: Link Redis keys
+create_relations("Redis Cache", "has-schema", "Redis Keys")
+
+## Command 52: Store security requirements
+create_entities("Security Requirements", "documentation", "Security Requirements: 1. JWT-based authentication with access and refresh tokens. 2. Password hashing with bcrypt (12 rounds). 3. HTTPS required for all production endpoints. 4. Rate limiting: 100 requests per minute per user. 5. OAuth 2.0 for LinkedIn and Google authentication. 6. CORS configured for frontend domain only. 7. SQL injection prevention via parameterized queries. 8. XSS prevention via input sanitization. 9. CSRF protection with SameSite cookies. 10. Sensitive data encryption at rest. 11. API key rotation every 90 days. 12. Regular security scans with Snyk. 13. Sentry error tracking enabled. 14. Access logs retained for 90 days.")
+
+## Command 53: Link security requirements
+create_relations("GiveMeJobs Platform", "follows", "Security Requirements")
+
+## Command 54: Store deployment procedures
+create_entities("Deployment Procedures", "documentation", "Deployment Procedures: 1. Run security scan: npx snyk test. 2. Run tests: npm test (frontend), pytest (backend). 3. Build Docker images: docker-compose build. 4. Run database migrations: alembic upgrade head. 5. Deploy to staging: docker-compose -f docker-compose.staging.yml up -d. 6. Run smoke tests on staging. 7. Deploy to production: docker-compose -f docker-compose.production.yml up -d. 8. Monitor logs: docker-compose logs -f. 9. Rollback if errors: docker-compose -f docker-compose.production.yml down; deploy previous version. 10. Update DNS if needed. 11. Clear CDN cache. 12. Notify team in Slack.")
+
+## Command 55: Link deployment procedures
+create_relations("GiveMeJobs Platform", "deployed-using", "Deployment Procedures")
+
+## Command 56: Store decision: Python Backend Choice
+create_entities("Python Backend Choice", "decision", "Use Python with FastAPI for backend instead of Node.js. Rationale: Better AI/ML library support, async capabilities, type hints, and performance.")
+
+## Command 57: Link decision: Python Backend Choice
+create_relations("GiveMeJobs Platform", "follows-decision", "Python Backend Choice")
+
+## Command 58: Store decision: Microservices Architecture
+create_entities("Microservices Architecture", "decision", "Use modular monolith initially, plan for microservices later. Rationale: Faster development, easier debugging, can split later.")
+
+## Command 59: Link decision: Microservices Architecture
+create_relations("GiveMeJobs Platform", "follows-decision", "Microservices Architecture")
+
+## Command 60: Store decision: Database Strategy
+create_entities("Database Strategy", "decision", "Use PostgreSQL for relational data, MongoDB for documents, Redis for caching. Rationale: Each database optimized for its use case.")
+
+## Command 61: Link decision: Database Strategy
+create_relations("GiveMeJobs Platform", "follows-decision", "Database Strategy")
+
+## Command 62: Store decision: AI Provider
+create_entities("AI Provider", "decision", "Use OpenAI GPT-4 for AI features. Rationale: Best quality, extensive API, good documentation.")
+
+## Command 63: Link decision: AI Provider
+create_relations("GiveMeJobs Platform", "follows-decision", "AI Provider")
+
+## Command 64: Store decision: Vector Database
+create_entities("Vector Database", "decision", "Use Pinecone for vector embeddings. Rationale: Managed service, low latency, good scaling.")
+
+## Command 65: Link decision: Vector Database
+create_relations("GiveMeJobs Platform", "follows-decision", "Vector Database")
+
+## Command 66: Store decision: Authentication
+create_entities("Authentication", "decision", "Use JWT with refresh tokens and OAuth 2.0. Rationale: Stateless, scalable, industry standard.")
+
+## Command 67: Link decision: Authentication
+create_relations("GiveMeJobs Platform", "follows-decision", "Authentication")
+
+## Command 68: Store decision: Frontend Framework
+create_entities("Frontend Framework", "decision", "Use Next.js 14 with TypeScript and Tailwind CSS. Rationale: Server-side rendering, great developer experience, modern tooling.")
+
+## Command 69: Link decision: Frontend Framework
+create_relations("GiveMeJobs Platform", "follows-decision", "Frontend Framework")
+

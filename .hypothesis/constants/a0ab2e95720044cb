@@ -1,0 +1,4 @@
+# file: C:\Users\chira\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\docker\constants.py
+# hypothesis_version: 6.148.2
+
+[1024, 2048, '1.24', '1.44', '10.0.0.0/8', '127.0.0.1', '\\\\?\\', 'b', 'cpusetcpus', 'cpushares', 'g', 'k', 'm', 'memory', 'memswap', 'win32']

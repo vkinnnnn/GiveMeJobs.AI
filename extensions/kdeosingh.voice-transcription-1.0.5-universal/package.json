@@ -1,0 +1,113 @@
+{
+	"name": "voice-transcription",
+	"displayName": "AI Voice Transcription for Cursor",
+	"description": "Talk directly to Cursor with your voice! Seamlessly transform speech into code, comments, and commands using OpenAI's GPT-4o Transcribe - all without leaving your editor. Imagine coding at the speed of thought, with AI.",
+	"version": "1.0.5",
+	"publisher": "kdeosingh",
+	"icon": "icon.png",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/kdeosingh/ai-voice-plugin.git"
+	},
+	"homepage": "https://github.com/kdeosingh/ai-voice-plugin",
+	"keywords": [
+		"voice",
+		"transcription",
+		"openai",
+		"whisper",
+		"speech-to-text",
+		"gpt-4o",
+		"ai",
+		"cursor",
+		"productivity"
+	],
+	"engines": {
+		"vscode": "^1.74.0",
+		"node": ">=16.0.0"
+	},
+	"categories": [
+		"AI",
+		"Chat",
+		"Programming Languages",
+		"Snippets",
+		"Machine Learning"
+	],
+	"activationEvents": [
+		"*"
+	],
+	"main": "./extension.js",
+	"contributes": {
+		"commands": [
+			{
+				"command": "voiceAI.record",
+				"title": "🎤 Start Voice Recording"
+			},
+			{
+				"command": "voiceAI.settings",
+				"title": "⚙️ Voice AI Settings"
+			},
+			{
+				"command": "voiceAI.testSettings",
+				"title": "🔧 Test Voice AI Settings"
+			}
+		],
+		"configuration": {
+			"title": "Voice AI Assistant",
+			"properties": {
+				"voiceAI.openaiApiKey": {
+					"type": "string",
+					"default": "",
+					"description": "OpenAI API Key"
+				},
+				"voiceAI.transcriptionModel": {
+					"type": "string",
+					"default": "gpt-4o-transcribe",
+					"enum": [
+						"whisper-1",
+						"gpt-4o-transcribe"
+					],
+					"description": "Transcription model"
+				},
+				"voiceAI.gptModel": {
+					"type": "string",
+					"default": "gpt-4o",
+					"enum": [
+						"gpt-4o",
+						"gpt-4",
+						"gpt-3.5-turbo"
+					],
+					"description": "GPT model for feedback"
+				},
+				"voiceAI.temperature": {
+					"type": "number",
+					"default": 0.1,
+					"minimum": 0,
+					"maximum": 2,
+					"description": "AI temperature"
+				},
+				"voiceAI.audioQuality": {
+					"type": "string",
+					"default": "high",
+					"enum": [
+						"low",
+						"medium",
+						"high"
+					],
+					"description": "Audio recording quality"
+				}
+			}
+		}
+	},
+	"dependencies": {
+		"openai": "^4.104.0"
+	},
+	"devDependencies": {
+		"@types/node": "^18.x"
+	},
+	"__metadata": {
+		"installedTimestamp": 1763774214332,
+		"targetPlatform": "universal",
+		"size": 8518291
+	}
+}

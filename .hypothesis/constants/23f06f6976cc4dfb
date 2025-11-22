@@ -1,0 +1,4 @@
+# file: C:\Users\chira\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\docker\utils\utils.py
+# hypothesis_version: 6.148.2
+
+[1970, 3600, '#', '.', '.docker', '/', '/tcp', ':', '=', '@', 'B', 'CgroupPermissions', 'DOCKER_CERT_PATH', 'DOCKER_HOST', 'DOCKER_TLS_VERIFY', 'HostIp', 'HostPort', 'PathInContainer', 'PathOnHost', 'Target', 'URLComponents', 'b', 'base_url', 'bind', 'ca.pem', 'cert.pem', 'false', 'fd', 'http', 'http+unix', 'https', 'key.pem', 'mode', 'npipe', 'private', 'propagation', 'ro', 'rprivate', 'rshared', 'rslave', 'rw', 'rwm', 'shared', 'slave', 'ssh', 'tcp', 'tls', 'true', 'unix', 'unix://', 'utf-8', '~']

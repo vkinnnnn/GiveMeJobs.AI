@@ -1,0 +1,4 @@
+# file: C:\Users\chira\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\pymongo\client_options.py
+# hypothesis_version: 6.148.2
+
+[', ', 'DEFAULT', 'appname', 'authmechanism', 'authsource', 'auto_encryption_opts', 'compressors', 'connect', 'connecttimeoutms', 'directconnection', 'driver', 'event_listeners', 'fsync', 'heartbeatfrequencyms', 'journal', 'loadbalanced', 'localthresholdms', 'maxconnecting', 'maxidletimems', 'maxpoolsize', 'maxstalenessseconds', 'minpoolsize', 'primary', 'read_preference', 'readconcernlevel', 'readpreference', 'readpreferencetags', 'replicaset', 'retryreads', 'retrywrites', 'server_api', 'server_selector', 'servermonitoringmode', 'sockettimeoutms', 'timeoutms', 'tls', 'tlscafile', 'tlscrlfile', 'w', 'waitqueuetimeoutms', 'wtimeoutms', 'zlibcompressionlevel']

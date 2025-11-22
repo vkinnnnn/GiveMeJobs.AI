@@ -1,0 +1,4 @@
+# file: C:\Users\chira\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\pymongo\__init__.py
+# hypothesis_version: 6.148.2
+
+['2d', '2dsphere', 'ASCENDING', 'AsyncMongoClient', 'CursorType', 'DESCENDING', 'DeleteMany', 'DeleteOne', 'GEO2D', 'GEOSPHERE', 'HASHED', 'IndexModel', 'InsertOne', 'MongoClient', 'ReadPreference', 'ReplaceOne', 'ReturnDocument', 'TEXT', 'UpdateMany', 'UpdateOne', 'WriteConcern', '__version__', 'get_version_string', 'has_c', 'hashed', 'text', 'timeout', 'version', 'version_tuple']

@@ -1,0 +1,4 @@
+# file: C:\Users\chira\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\psycopg\connection_async.py
+# hypothesis_version: 6.148.2
+
+[0.0, 0.1, 5.0, 30.0, 'COMMIT', 'ROLLBACK', '_pool', 'autocommit', 'deferrable', 'host', 'hostaddr', 'isolation_level', 'port', 'psycopg', 'read_only', 'win32']

@@ -1,0 +1,4 @@
+# file: C:\Users\chira\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\pymongo\hello.py
+# hypothesis_version: 6.148.2
+
+['$clusterTime', '_awaitable', '_doc', '_is_readable', '_is_writable', '_server_type', 'arbiterOnly', 'arbiters', 'compression', 'connectionId', 'electionId', 'hello', 'helloOk', 'hidden', 'hosts', 'isWritablePrimary', 'isdbgrid', 'ismaster', 'isreplicaset', 'lastWrite', 'lastWriteDate', 'maxBsonObjectSize', 'maxMessageSizeBytes', 'maxWireVersion', 'maxWriteBatchSize', 'me', 'minWireVersion', 'msg', 'not master', 'ok', 'passives', 'primary', 'saslSupportedMechs', 'secondary', 'serviceId', 'setName', 'setVersion', 'tags', 'topologyVersion']

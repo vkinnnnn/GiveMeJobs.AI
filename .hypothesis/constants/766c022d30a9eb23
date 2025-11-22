@@ -1,0 +1,4 @@
+# file: C:\Users\chira\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\bson\json_util.py
+# hypothesis_version: 6.148.2
+
+[1000, 3600, 1000000, 4294967168, '$binary', '$code', '$date', '$db', '$dbPointer', '$id', '$maxKey', '$minKey', '$numberDecimal', '$numberDouble', '$numberInt', '$numberLong', '$oid', '$options', '$ref', '$regex', '$regularExpression', '$scope', '$symbol', '$timestamp', '$type', '$undefined', '$uuid', '%02x', '%Y-%m-%dT%H:%M:%S', '%z', '+', '-', '-Infinity', '.', '.%03d', ':', 'CodecOptions[Any]', 'Infinity', 'NaN', 'Z', '__iter__', '_type_marker', 'base64', 'i', 'items', 'json_mode', 'json_options', 'l', 'm', 'object_hook', 'object_pairs_hook', 'options', 'pattern', 's', 'strict_number_long', 'strict_uuid', 'subType', 't', 'tz_aware', 'tzinfo', 'u', 'utf-8', 'x', '{}{}{}']

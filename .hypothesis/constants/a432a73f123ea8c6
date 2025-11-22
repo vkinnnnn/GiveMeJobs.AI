@@ -1,0 +1,4 @@
+# file: C:\Users\chira\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\redis\_parsers\commands.py
+# hypothesis_version: 6.148.2
+
+['CHANNELS', 'COMMAND', 'COMMAND GETKEYS', 'ClusterNode', 'Invalid arguments', 'NUMSUB', 'PSUBSCRIBE', 'PUBLISH', 'PUBSUB', 'PUNSUBSCRIBE', 'SHARDCHANNELS', 'SHARDNUMSUB', 'SPUBLISH', 'SUBSCRIBE', 'UNSUBSCRIBE', 'arity', 'commands', 'first_key_pos', 'flags', 'key_specifications', 'last_key_pos', 'movablekeys', 'name', 'node', 'pubsub', 'step_count', 'subcommands', 'tips']

@@ -1,0 +1,4 @@
+# file: C:\Users\chira\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\pymongo\results.py
+# hypothesis_version: 6.148.2
+
+['__acknowledged', '__bulk_api_result', '__in_client_bulk', '__inserted_id', '__inserted_ids', '__raw_result', '_id', 'deleteResults', 'delete_results', 'deleted_count', 'index', 'insertResults', 'insert_results', 'inserted_count', 'matched_count', 'modified_count', 'n', 'nDeleted', 'nInserted', 'nMatched', 'nModified', 'nRemoved', 'nUpserted', 'updateResults', 'update_results', 'upserted', 'upserted_count', 'upserted_id', 'upserted_ids']

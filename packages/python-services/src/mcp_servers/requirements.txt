@@ -1,0 +1,18 @@
+# MCP Servers Requirements
+# Core dependencies for Database, Docker, and API Testing MCP Servers
+
+# Database Clients
+psycopg[binary]==3.2.3         # PostgreSQL adapter
+pymongo==4.10.1                # MongoDB driver
+redis[hiredis]==5.2.1          # Redis client
+
+# Docker SDK
+docker==7.1.0                  # Docker SDK for Python
+
+# HTTP Client & Schema Validation
+httpx==0.28.1                  # Async HTTP client
+jsonschema==4.23.0             # JSON Schema validation
+
+# Common utilities
+python-dotenv==1.0.1           # Environment variable loading
+pydantic==2.10.3               # Data validation

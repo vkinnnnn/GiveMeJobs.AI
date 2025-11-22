@@ -1,0 +1,4 @@
+# file: C:\Users\chira\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\pymongo\ssl_context.py
+# hypothesis_version: 6.148.2
+
+['HAS_SNI', 'OP_NO_COMPRESSION', 'OP_NO_RENEGOTIATION', 'OP_NO_SSLv2', 'OP_NO_SSLv3', 'PROTOCOL_TLS_CLIENT']

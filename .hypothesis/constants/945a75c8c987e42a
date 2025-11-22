@@ -1,0 +1,4 @@
+# file: C:\Users\chira\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\docker\api\daemon.py
+# hypothesis_version: 6.148.2
+
+[200, '/_ping', '/auth', '/events', '/info', '/system/df', '/version', '1.25', 'OK', 'email', 'filters', 'password', 'serveraddress', 'since', 'until', 'username']

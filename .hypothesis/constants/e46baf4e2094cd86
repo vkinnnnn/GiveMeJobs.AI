@@ -1,0 +1,4 @@
+# file: C:\Users\chira\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\docker\transport\npipeconn.py
+# hypothesis_version: 6.148.2
+
+['Pool is closed.', 'localhost', 'max_pool_size', 'npipe://', 'npipe_path', 'pools', 'timeout']

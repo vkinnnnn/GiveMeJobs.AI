@@ -1,0 +1,4 @@
+# file: C:\Users\chira\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\pymongo\monitoring.py
+# hypothesis_version: 6.148.2
+
+[1000000.0, '_Listeners', '__address', '__awaited', '__cmd', '__cmd_name', '__conn_id', '__connection_id', '__db', '__duration', '__duration_micros', '__failure', '__new_description', '__op_id', '__options', '__reason', '__reply', '__rqst_id', '__server_address', '__server_conn_id', '__service_id', '__topology_id', 'cmap_listeners', 'command_listeners', 'connectionError', 'error', 'hello', 'idle', 'poolClosed', 'server_listeners', 'stale', 'timeout', 'topology_listeners', '{}({!r}, {!r}, {!r})']

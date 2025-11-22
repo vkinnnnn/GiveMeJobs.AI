@@ -1,0 +1,4 @@
+# file: C:\Users\chira\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\pymongo\synchronous\cursor.py
+# hypothesis_version: 6.148.2
+
+['$comment', '$explain', '$hint', '$max', '$maxScan', '$maxTimeMS', '$min', '$orderby', '$query', '$returnKey', '$showDiskLoc', '$snapshot', '$where', '.', 'SupportsItems', '_', '_DocumentOut', 'allow_disk_use', 'batch_size', 'collation', 'comment', 'cursor', 'cursor_type', 'empty', 'exhaust', 'explain', 'filter', 'find', 'firstBatch', 'has_filter', 'hint', 'id', 'items', 'let', 'limit', 'max', 'maxTimeMS', 'max_await_time_ms', 'max_scan', 'max_time_ms', 'min', 'nextBatch', 'no_cursor_timeout', 'no_timeout', 'ns', 'oplog_replay', 'ordering', 'partial', 'projection', 'query', 'query_flags', 'return_key', 'show_record_id', 'skip', 'skip must be >= 0', 'snapshot', 'spec', 'tailable_cursor']

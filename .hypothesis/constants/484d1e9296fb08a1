@@ -1,0 +1,4 @@
+# file: C:\Users\chira\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\psycopg\types\numeric.py
+# hypothesis_version: 6.148.2
+
+[b'\x00\x00', b' ', b"'-Infinity'::float8", b"'-Infinity'::numeric", b"'Infinity'::float8", b"'Infinity'::numeric", b"'NaN'::float8", b"'NaN'::numeric", b'-Infinity', b'-inf', b'Infinity', b'NULL', b'NaN', b'inf', b'nan', 100, 256, 1000, 10000, 16384, 49152, 53248, 61440, '!HhHH', '-Infinity', 'F', 'Infinity', 'N', 'NaN', 'decimal.Decimal', 'float4', 'float8', 'int2', 'int4', 'int8', 'n', 'numeric', 'numpy', 'oid']

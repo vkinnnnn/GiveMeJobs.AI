@@ -1,0 +1,4 @@
+# file: C:\Users\chira\.kiro\packages\python-services\src\mcp_servers\workflows\feature_development.py
+# hypothesis_version: 6.148.2
+
+['## Next Steps\n\n', '## Workflow Steps\n\n', '.', '2. Write tests\n', '4. Commit changes\n', 'Check Git status', 'GiveMeJobs Platform', '__main__', 'all', 'branch', 'create', 'create_entities', 'create_relations', 'database', 'db_query', 'description', 'docker', 'docker_ps', 'feature', 'from_entity', 'git', 'git_checkout', 'git_status', 'has-feature', 'mcp_server', 'memory', 'name', 'params', 'path', 'postgresql', 'query', 'relation', 'snyk', 'snyk_code_scan', 'step', 'steps', 'to_entity', 'tool', 'type', 'utf-8', 'w']

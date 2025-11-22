@@ -1,0 +1,11 @@
+# Perplexity MCP Server Requirements
+# Install with: pip install -r perplexity_mcp_requirements.txt
+
+# MCP SDK
+mcp>=0.9.0
+
+# HTTP client
+httpx>=0.27.0
+
+# Async support
+anyio>=4.0.0

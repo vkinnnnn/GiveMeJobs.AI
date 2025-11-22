@@ -1,0 +1,4 @@
+# file: C:\Users\chira\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\pymongo\typings.py
+# hypothesis_version: 6.148.2
+
+['AsyncClientSession', 'AsyncConnection', 'AsyncMongoClient', 'ClientSession', 'Collation', 'Connection', 'MongoClient', '_Address', '_AgnosticMongoClient', '_AsyncBulk', '_AsyncClientBulk', '_Bulk', '_ClientBulk', '_CollationIn', '_DocumentOut', '_DocumentType', '_DocumentTypeArg', '_Pipeline', '_T', 'strip_optional']

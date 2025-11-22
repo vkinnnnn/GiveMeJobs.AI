@@ -1,0 +1,4 @@
+# file: C:\Users\chira\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\psycopg\pq\misc.py
+# hypothesis_version: 6.148.2
+
+[b'/', 100, '%s=%s', '--libdir', '5432', 'darwin', 'database', 'host', 'libpq.dll', 'libpq.dylib', 'pg_config', 'port', 'pq', 'psycopg.pq', 'replace', 'user', 'win32']

@@ -1,0 +1,4 @@
+# file: C:\Users\chira\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\docker\api\secret.py
+# hypothesis_version: 6.148.2
+
+['/secrets', '/secrets/create', '/secrets/{0}', '1.25', '1.31', 'Data', 'Driver', 'Labels', 'Name', 'ascii', 'filters', 'id', 'utf-8']

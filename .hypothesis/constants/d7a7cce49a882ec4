@@ -1,0 +1,4 @@
+# file: C:\Users\chira\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\docker\api\volume.py
+# hypothesis_version: 6.148.2
+
+['/volumes', '/volumes/create', '/volumes/prune', '/volumes/{0}', '1.23', '1.25', 'Driver', 'DriverOpts', 'Labels', 'Name', 'filters', 'force']

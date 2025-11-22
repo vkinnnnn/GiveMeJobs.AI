@@ -1,0 +1,4 @@
+Test your speech-to-text extension here!
+
+Place your cursor below and click the microphone button:
+

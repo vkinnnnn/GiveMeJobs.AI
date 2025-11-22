@@ -1,0 +1,4 @@
+# file: C:\Users\chira\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\psycopg\_typeinfo.py
+# hypothesis_version: 6.148.2
+
+[90400, 220200, '%(name)s::regtype', ',', 'CockroachDB', 'PostgreSQL', 'T', 'TypeInfo', '[]', 'ascii', 'name', 'psycopg.types', 'to_regtype(%(name)s)']

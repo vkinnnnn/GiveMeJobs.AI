@@ -1,0 +1,4 @@
+# file: C:\Users\chira\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\psycopg\pq\__init__.py
+# hypothesis_version: 6.148.2
+
+['ConnStatus', 'Conninfo', 'ConninfoOption', 'DiagnosticField', 'ExecStatus', 'Format', 'PGconn', 'PGnotify', 'PGresAttDesc', 'PSYCOPG_IMPL', 'Ping', 'PipelineStatus', 'PollingStatus', 'Trace', 'TransactionStatus', 'binary', 'c', 'error_message', 'python', 'version', 'version_pretty']

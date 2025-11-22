@@ -1,0 +1,35 @@
+MIT License (Personal Use Only)
+
+Copyright (c) 2025 Vrishn Viswa Sathyamoorthy
+
+Contact Information:
+- Name: Vrishn Viswa Sathyamoorthy  
+- Email: vrishnviswasathyamoorthy@gmail.com
+- Phone: +1 (914) 879-5242
+- GitHub: @KingReaper96420 (https://github.com/KingReaper96420)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software for **PERSONAL USE ONLY**, including without limitation the rights
+to use, copy, modify, and distribute copies of the Software for personal,
+non-commercial purposes, subject to the following conditions:
+
+COMMERCIAL USE RESTRICTION: This software may NOT be used for commercial purposes,
+sold, licensed, or distributed for profit without explicit written permission 
+from the copyright holder (Vrishn Viswa Sathyamoorthy).
+
+The above copyright notice, this permission notice, and the contact information 
+shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+For commercial licensing inquiries, please contact:
+Vrishn Viswa Sathyamoorthy
+Email: vrishnviswasathyamoorthy@gmail.com
+Phone: +1 (914) 879-5242

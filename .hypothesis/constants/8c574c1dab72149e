@@ -1,0 +1,4 @@
+# file: C:\Users\chira\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\docker\types\networks.py
+# hypothesis_version: 6.148.2
+
+['1.22', '1.24', '1.25', '1.32', 'Aliases', 'AuxiliaryAddresses', 'Config', 'Driver', 'DriverOpts', 'EndpointsConfig', 'Gateway', 'IPAMConfig', 'IPRange', 'IPv4Address', 'IPv6Address', 'LinkLocalIPs', 'Links', 'MacAddress', 'Options', 'Subnet', 'default']

@@ -1,0 +1,4 @@
+# file: C:\Users\chira\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\docker\api\network.py
+# hypothesis_version: 6.148.2
+
+['/networks', '/networks/create', '/networks/prune', '/networks/{0}', '1.22', '1.23', '1.24', '1.25', '1.28', '1.29', '1.30', '1.31', 'Attachable', 'CheckDuplicate', 'Container', 'Driver', 'EnableIPv6', 'EndpointConfig', 'Force', 'IPAM', 'Ingress', 'Internal', 'Labels', 'Name', 'Options', 'Scope', 'container', 'filters', 'id', 'name', 'net_id', 'scope', 'verbose']

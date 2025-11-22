@@ -1,0 +1,4 @@
+# file: C:\Users\chira\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\psycopg\types\datetime.py
+# hypothesis_version: 6.148.2
+
+[b'%+d day %+d second %+d microsecond', b'+', b',', b'-', b'DMY', b'DateStyle', b'G', b'I', b'ISO, DMY', b'IntervalStyle', b'Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec', b'P', b'S', b'^(\\d+):(\\d+):(\\d+)(?:\\.(\\d+))?', b'postgres', b'sql_standard', b'unknown', 0.0, 100, 365, 1000, 2000, 3600, 10000, 86400, 100000, 1000000, '!qi', '!qii', '-infinity', 'BC', 'ascii', 'date', 'datetime.date', 'datetime.datetime', 'datetime.time', 'datetime.timedelta', 'infinity', 'interval', 'replace', 'time', 'timestamp', 'timestamptz', 'timetz', 'tuple[int, int, int]', 'tuple[int, int]', 'utf8']

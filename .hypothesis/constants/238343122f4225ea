@@ -1,0 +1,4 @@
+# file: C:\Users\chira\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\redis\commands\sentinel.py
+# hypothesis_version: 6.148.2
+
+['SENTINEL CKQUORUM', 'SENTINEL FAILOVER', 'SENTINEL FLUSHCONFIG', 'SENTINEL MASTER', 'SENTINEL MASTERS', 'SENTINEL MONITOR', 'SENTINEL REMOVE', 'SENTINEL RESET', 'SENTINEL SENTINELS', 'SENTINEL SET', 'SENTINEL SLAVES']

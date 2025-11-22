@@ -1,0 +1,4 @@
+# file: C:\Users\chira\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\docker\api\plugin.py
+# hypothesis_version: 6.148.2
+
+['/plugins', '/plugins/create', '/plugins/privileges', '/plugins/pull', '/plugins/{0}', '/plugins/{0}/disable', '/plugins/{0}/enable', '/plugins/{0}/json', '/plugins/{0}/pull', '/plugins/{0}/set', '/plugins/{0}/upgrade', '1.25', '1.26', 'X-Registry-Auth', 'force', 'name', 'remote', 'timeout']

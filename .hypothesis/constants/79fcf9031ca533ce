@@ -1,0 +1,4 @@
+# file: C:\Users\chira\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\docker\api\client.py
+# hypothesis_version: 6.148.2
+
+[0.0, '/:', '>BxxxL', 'ApiVersion', 'Config', 'Content-Type', 'POST', 'Tty', 'User-Agent', '_auth_configs', '_general_configs', '_sock', '_version', 'application/json', 'auto', 'base_url', 'container', 'default', 'gettimeout', 'headers', 'http+docker://', 'http+docker://ssh', 'http+unix://', 'http://', 'https://', 'npipe://', 'proxies', 'settimeout', 'ssh://', 'stderr', 'stdout', 'stream', 'timeout', 'versioned_api', 'ws://', 'wss://']

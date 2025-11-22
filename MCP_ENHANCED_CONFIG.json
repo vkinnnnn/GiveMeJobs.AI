@@ -1,0 +1,167 @@
+{
+  "mcpServers": {
+    "development": {
+      "git": {
+        "command": "uvx",
+        "args": ["mcp-server-git", "--repository", "C:\\Users\\chira\\.kiro"],
+        "disabled": false,
+        "autoApprove": ["git_status", "git_diff_unstaged", "git_diff_staged", "git_commit", "git_add", "git_log"],
+        "description": "Local version control operations"
+      },
+      "github": {
+        "command": "npx",
+        "args": ["-y", "@modelcontextprotocol/server-github"],
+        "env": {
+          "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}"
+        },
+        "disabled": false,
+        "autoApprove": ["search_repositories", "get_file_contents", "create_or_update_file", "push_files", "create_issue"],
+        "description": "Remote GitHub repository operations"
+      }
+    },
+    "research": {
+      "fetch": {
+        "command": "uvx",
+        "args": ["mcp-server-fetch"],
+        "disabled": false,
+        "autoApprove": ["fetch"],
+        "description": "Fetch and parse web content"
+      },
+      "brave-search": {
+        "command": "npx",
+        "args": ["-y", "@modelcontextprotocol/server-brave-search"],
+        "env": {
+          "BRAVE_API_KEY": "${BRAVE_API_KEY}"
+        },
+        "disabled": false,
+        "autoApprove": ["brave_web_search", "brave_local_search"],
+        "description": "Web search with Brave"
+      },
+      "perplexity": {
+        "command": "python",
+        "args": ["perplexity_mcp_server.py"],
+        "env": {
+          "PERPLEXITY_API_KEY": "${PERPLEXITY_API_KEY}"
+        },
+        "disabled": false,
+        "autoApprove": ["perplexity_search", "perplexity_chat"],
+        "description": "AI-powered search and reasoning"
+      }
+    },
+    "security": {
+      "snyk": {
+        "command": "npx",
+        "args": ["-y", "snyk@latest", "mcp", "-t", "stdio"],
+        "env": {},
+        "disabled": false,
+        "autoApprove": ["snyk_code_scan", "snyk_test", "snyk_iac_test", "snyk_container_test"],
+        "description": "Security vulnerability scanning"
+      }
+    },
+    "knowledge": {
+      "memory": {
+        "command": "npx",
+        "args": ["-y", "@modelcontextprotocol/server-memory"],
+        "disabled": false,
+        "autoApprove": ["create_entities", "create_relations", "search_nodes", "open_nodes", "read_graph"],
+        "description": "Knowledge graph and context storage"
+      }
+    }
+  },
+  "workflowTemplates": {
+    "feature-development": {
+      "name": "Feature Development Workflow",
+      "steps": [
+        "memory: Create feature entity",
+        "git: Create feature branch",
+        "github: Create draft PR",
+        "perplexity: Research best practices",
+        "snyk: Security baseline scan"
+      ]
+    },
+    "bug-fix": {
+      "name": "Bug Fix Workflow",
+      "steps": [
+        "github: Find related issues",
+        "git: Create bugfix branch",
+        "perplexity: Research solution",
+        "snyk: Security scan",
+        "git: Commit fix",
+        "github: Create PR"
+      ]
+    },
+    "security-audit": {
+      "name": "Security Audit Workflow",
+      "steps": [
+        "snyk: Code scan",
+        "snyk: Dependency scan",
+        "snyk: Container scan",
+        "snyk: IaC scan",
+        "memory: Store findings",
+        "github: Create security issues"
+      ]
+    },
+    "research-topic": {
+      "name": "Research Topic Workflow",
+      "steps": [
+        "perplexity: Get AI analysis",
+        "brave-search: Find resources",
+        "fetch: Get detailed content",
+        "memory: Store findings",
+        "github: Document in wiki"
+      ]
+    }
+  },
+  "bestPractices": {
+    "beforeCommit": [
+      "Run snyk_code_scan",
+      "Run snyk_test",
+      "Verify all tests pass",
+      "Check git diff"
+    ],
+    "beforeDeployment": [
+      "Run full snyk suite",
+      "Verify all tests pass",
+      "Check memory for deployment checklist",
+      "Review git log"
+    ],
+    "dailyRoutine": [
+      "Check memory for tasks",
+      "Run security scans",
+      "Review git status",
+      "Update memory with progress"
+    ]
+  },
+  "projectContext": {
+    "name": "GiveMeJobs Platform",
+    "description": "AI-powered job application platform",
+    "components": {
+      "frontend": {
+        "type": "Next.js 14",
+        "path": "packages/frontend",
+        "language": "TypeScript/React"
+      },
+      "backend": {
+        "type": "FastAPI",
+        "path": "packages/python-services",
+        "language": "Python 3.13"
+      },
+      "databases": {
+        "primary": "PostgreSQL",
+        "documents": "MongoDB",
+        "cache": "Redis",
+        "vectors": "Pinecone"
+      },
+      "externalServices": {
+        "ai": "OpenAI GPT-4",
+        "vectorDb": "Pinecone",
+        "email": "Resend",
+        "search": "Adzuna API"
+      }
+    },
+    "apiEndpoints": 80,
+    "databases": 4,
+    "externalServices": 4,
+    "deploymentTargets": ["Local Docker", "Kubernetes", "Cloud"]
+  }
+}

@@ -1,0 +1,267 @@
+{
+	"name": "cursorforspeech",
+	"displayName": "Cursor for Speech - Voice to Text",
+	"description": "🎤 Advanced voice-to-text panel with Web Speech API and OpenAI Whisper support. Requires OpenAI API key for premium Whisper transcription. Created by Vrishn Viswa Sathyamoorthy.",
+	"version": "3.6.0",
+	"publisher": "VrishnViswaSathyamoorthy",
+	"author": {
+		"name": "Vrishn Viswa Sathyamoorthy",
+		"email": "vrishnviswasathyamoorthy@gmail.com",
+		"url": "https://github.com/KingReaper96420/cursorforspeech",
+		"phone": "+1 9148795242"
+	},
+	"license": "MIT",
+	"homepage": "https://github.com/KingReaper96420/cursorforspeech",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/KingReaper96420/cursorforspeech.git"
+	},
+	"bugs": {
+		"url": "https://github.com/KingReaper96420/cursorforspeech/issues"
+	},
+	"icon": "icon.png",
+	"engines": {
+		"vscode": "^1.74.0"
+	},
+	"categories": [
+		"Other",
+		"Machine Learning"
+	],
+	"keywords": [
+		"voice",
+		"speech",
+		"transcription",
+		"whisper",
+		"openai",
+		"ai",
+		"cursor",
+		"voice-to-text",
+		"speech-recognition",
+		"dictation",
+		"microphone",
+		"audio",
+		"real-time",
+		"web-speech-api",
+		"productivity",
+		"accessibility"
+	],
+	"activationEvents": [
+		"onStartupFinished"
+	],
+	"main": "./out/extension.js",
+	"contributes": {
+		"commands": [
+			{
+				"command": "cursorforspeech.toggleRecording",
+				"title": "Toggle Voice Recording",
+				"icon": "$(mic)",
+				"category": "Cursor for Speech"
+			},
+			{
+				"command": "cursorforspeech.openVoicePanel",
+				"title": "Open Voice Panel",
+				"icon": "$(mic)",
+				"category": "Cursor for Speech"
+			},
+			{
+				"command": "cursorforspeech.sendSelectionToChat",
+				"title": "Send Selection to Cursor Chat",
+				"category": "Cursor for Speech"
+			},
+			{
+				"command": "cursorforspeech.selectLanguage",
+				"title": "Select Voice Recognition Language",
+				"category": "Cursor for Speech"
+			}
+		],
+		"keybindings": [
+			{
+				"command": "cursorforspeech.toggleRecording",
+				"key": "ctrl+shift+v",
+				"mac": "cmd+shift+v",
+				"when": "editorTextFocus"
+			},
+			{
+				"command": "cursorforspeech.openVoicePanel",
+				"key": "ctrl+m",
+				"mac": "cmd+m",
+				"when": "editorTextFocus"
+			}
+		],
+		"menus": {
+			"editor/title": [
+				{
+					"command": "cursorforspeech.openVoicePanel",
+					"when": "resourceLangId && !editorIsReadonly",
+					"group": "navigation@0"
+				},
+				{
+					"command": "cursorforspeech.sendSelectionToChat",
+					"when": "editorHasSelection && resourceLangId",
+					"group": "navigation@1"
+				}
+			],
+			"editor/context": [
+				{
+					"command": "cursorforspeech.sendSelectionToChat",
+					"when": "editorHasSelection && resourceLangId",
+					"group": "navigation@9"
+				}
+			]
+		},
+		"configuration": {
+			"title": "Cursor for Speech",
+			"properties": {
+				"cursorforspeech.language": {
+					"type": "string",
+					"default": "auto",
+					"enum": [
+						"auto",
+						"english",
+						"chinese",
+						"german",
+						"spanish",
+						"russian",
+						"korean",
+						"french",
+						"japanese",
+						"portuguese",
+						"turkish",
+						"polish",
+						"catalan",
+						"dutch",
+						"arabic",
+						"swedish",
+						"italian",
+						"indonesian",
+						"hindi",
+						"finnish",
+						"vietnamese",
+						"hebrew",
+						"ukrainian",
+						"greek",
+						"malay",
+						"czech",
+						"romanian",
+						"danish",
+						"hungarian",
+						"tamil",
+						"norwegian",
+						"thai",
+						"urdu",
+						"croatian",
+						"bulgarian",
+						"lithuanian",
+						"latin",
+						"maori",
+						"malayalam",
+						"welsh",
+						"slovak",
+						"telugu",
+						"persian",
+						"latvian",
+						"bengali",
+						"serbian",
+						"azerbaijani",
+						"slovenian",
+						"kannada",
+						"estonian",
+						"macedonian",
+						"breton",
+						"basque",
+						"icelandic",
+						"armenian",
+						"nepali",
+						"mongolian",
+						"bosnian",
+						"kazakh",
+						"albanian",
+						"swahili",
+						"galician",
+						"maltese",
+						"punjabi",
+						"afrikaans",
+						"georgian",
+						"belarusian",
+						"sindhi",
+						"gujarati",
+						"amharic",
+						"yiddish",
+						"lao",
+						"uzbek",
+						"faroese",
+						"haitian creole",
+						"pashto",
+						"turkmen",
+						"nynorsk",
+						"marathi",
+						"luxembourgish",
+						"myanmar",
+						"tibetan",
+						"khmer",
+						"tatar",
+						"malagasy",
+						"assamese",
+						"bashkir",
+						"javanese",
+						"sundanese",
+						"cantonese"
+					],
+					"description": "Language for voice recognition"
+				},
+				"cursorforspeech.maxTokens": {
+					"type": "number",
+					"default": 128,
+					"minimum": 1,
+					"maximum": 512,
+					"description": "Maximum tokens for ASR output"
+				},
+				"cursorforspeech.autoInsertInEditor": {
+					"type": "boolean",
+					"default": true,
+					"description": "Automatically insert transcribed text into the active editor"
+				},
+				"cursorforspeech.whisperApiKey": {
+					"type": "string",
+					"default": "",
+					"description": "OpenAI API key for Whisper transcription (optional, for better accuracy)"
+				},
+				"cursorforspeech.useWhisper": {
+					"type": "boolean",
+					"default": false,
+					"description": "Use OpenAI Whisper instead of Web Speech API for transcription"
+				}
+			}
+		}
+	},
+	"scripts": {
+		"vscode:prepublish": "npm run compile",
+		"compile": "tsc -p ./",
+		"watch": "tsc -watch -p ./",
+		"pretest": "npm run compile && npm run lint",
+		"lint": "eslint src --ext ts",
+		"test": "node ./out/test/runTest.js",
+		"package": "vsce package",
+		"publish": "vsce publish"
+	},
+	"devDependencies": {
+		"@types/vscode": "^1.74.0",
+		"@types/node": "16.x",
+		"@typescript-eslint/eslint-plugin": "^5.45.0",
+		"@typescript-eslint/parser": "^5.45.0",
+		"eslint": "^8.28.0",
+		"typescript": "^4.9.4",
+		"@vscode/test-electron": "^2.2.0",
+		"@vscode/vsce": "^2.19.0",
+		"esbuild": "^0.25.2"
+	},
+	"dependencies": {
+		"@huggingface/transformers": "3.5.0",
+		"openai": "^4.0.0"
+	},
+	"__metadata": {
+		"installedTimestamp": 1763780196190,
+		"targetPlatform": "universal",
+		"size": 193371
+	}
+}

@@ -1,0 +1,4 @@
+# file: C:\Users\chira\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\pymongo\_client_bulk_shared.py
+# hypothesis_version: 6.148.2
+
+['Transaction numbers', 'code', 'errmsg', 'error', 'idx', 'nDeleted', 'nInserted', 'nMatched', 'nModified', 'nUpserted', 'op', 'writeConcernErrors', 'writeErrors']

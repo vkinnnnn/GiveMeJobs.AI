@@ -1,0 +1,4 @@
+# file: C:\Users\chira\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\psycopg\types\numpy.py
+# hypothesis_version: 6.148.2
+
+['numpy.bool', 'numpy.bool_', 'numpy.float16', 'numpy.float32', 'numpy.float64', 'numpy.int16', 'numpy.int32', 'numpy.int64', 'numpy.int8', 'numpy.longlong', 'numpy.uint16', 'numpy.uint32', 'numpy.uint64', 'numpy.uint8', 'numpy.ulonglong']

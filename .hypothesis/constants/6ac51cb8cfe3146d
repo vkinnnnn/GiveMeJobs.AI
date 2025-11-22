@@ -1,0 +1,4 @@
+# file: C:\Users\chira\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\psycopg\_copy_base.py
+# hypothesis_version: 6.148.2
+
+[b'\x08', b'\t', b'\n', b'\x0b', b'\x0c', b'\r', b'PGCOPY\n\xff\r\n\x00\x00\x00\x00\x00\x00\x00\x00\x00', b'[\x08\t\n\x0b\x0c\r\\\\]', b'\\', b'\\N', b'\\\\', b'\\\\[btnvfr\\\\]', b'\\b', b'\\f', b'\\n', b'\\r', b'\\t', b'\\v', b'\xff\xff', b'\xff\xff\xff\xff', 1024, '!h', '!i', '_tx', 'darwin', 'utf-8']

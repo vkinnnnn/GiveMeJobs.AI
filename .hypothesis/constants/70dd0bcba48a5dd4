@@ -1,0 +1,4 @@
+# file: C:\Users\chira\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\psycopg\_wrappers.py
+# hypothesis_version: 6.148.2
+
+['Float4', 'Float8', 'Int2', 'Int4', 'Int8', 'IntNumeric', 'Oid']

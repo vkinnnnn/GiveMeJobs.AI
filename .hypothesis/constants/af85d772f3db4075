@@ -1,0 +1,4 @@
+# file: C:\Users\chira\.kiro\packages\python-services\src\mcp_servers\workflows\bug_fix.py
+# hypothesis_version: 6.148.2
+
+[123, 200, '## Next Steps\n\n', '## Workflow Steps\n\n', '.', '/api/endpoint', '/api/health', '1. Commit the fix\n', '2. Push to remote\n', '4. Link PR to issue\n', 'Analyze GitHub issue', 'Bug Fix Workflow', 'Bug fix verification', 'Check database state', 'GET', 'Security validation', '__main__', 'api_testing', 'branch', 'bugfix', 'create', 'create_entities', 'database', 'db_query', 'description', 'expected_status', 'get_issue', 'git', 'git_checkout', 'github', 'givemejobs', 'http_request', 'issue', 'issue_number', 'mcp_server', 'memory', 'method', 'name', 'note', 'owner', 'params', 'path', 'postgresql', 'query', 'repo', 'search_nodes', 'snyk', 'snyk_test', 'step', 'steps', 'test_batch', 'tests', 'title', 'tool', 'type', 'url', 'utf-8', 'w', 'your-org']

@@ -1,0 +1,4 @@
+# file: C:\Users\chira\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\pymongo\asynchronous\aggregation.py
+# hypothesis_version: 6.148.2
+
+['$merge', '$out', '.', 'aggregate', 'batchSize', 'collation', 'comment', 'cursor', 'explain', 'firstBatch', 'id', 'let', 'maxAwaitTimeMS', 'ns', 'options', 'pipeline', 'readConcern', 'result', 'writeConcern']

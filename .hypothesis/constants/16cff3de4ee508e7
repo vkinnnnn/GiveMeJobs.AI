@@ -1,0 +1,4 @@
+# file: C:\Users\chira\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\psycopg\types\range.py
+# hypothesis_version: 6.148.2
+
+[b'"', b'""', b'(', b'(["\\\\])\\1', b'([\\\\\\"])', b')', b',', b'[', b'[",\\\\\\s()\\[\\]]', b'\\1', b'\\1\\1', b']', b'empty', '(', '()', '(]', ')', ', ', 'T', '[', '[)', '[]', ']', '_bounds', '_lower', '_upper', 'daterange', 'empty', 'empty=True', 'int4range', 'int8range', 'numrange', 'subtype_oid', 'tsrange', 'tstzrange']

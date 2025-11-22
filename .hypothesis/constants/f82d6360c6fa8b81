@@ -1,0 +1,4 @@
+# file: C:\Users\chira\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\docker\api\image.py
+# hypothesis_version: 6.148.2
+
+[201, '-', '/images/create', '/images/json', '/images/load', '/images/prune', '/images/search', '/images/{0}', '/images/{0}/get', '/images/{0}/history', '/images/{0}/json', '/images/{0}/push', '/images/{0}/tag', '1.23', '1.25', '1.30', '1.32', 'Content-Type', 'Id', 'Transfer-Encoding', 'X-Registry-Auth', 'all', 'application/tar', 'changes', 'chunked', 'filter', 'filters', 'force', 'fromImage', 'fromSrc', 'image', 'latest', 'limit', 'noprune', 'only_ids', 'platform', 'quiet', 'rb', 'reference', 'repo', 'tag', 'term']

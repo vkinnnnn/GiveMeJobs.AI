@@ -1,0 +1,4 @@
+# file: C:\Users\chira\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\docker\api\build.py
+# hypothesis_version: 6.148.2
+
+['#', ', ', '..', '.dockerignore', '/build', '/build/prune', '1.22', '1.23', '1.24', '1.25', '1.27', '1.29', '1.31', '1.32', '1.39', 'Content-Encoding', 'Content-Type', 'No auth config found', 'X-Registry-Config', 'all', 'application/tar', 'buildargs', 'cachefrom', 'dockerfile', 'extrahosts', 'filters', 'forcerm', 'git://', 'git@', 'github.com/', 'gzip', 'http://', 'https://', 'isolation', 'keep-storage', 'labels', 'networkmode', 'nocache', 'platform', 'pull', 'q', 'remote', 'rm', 'shmsize', 'squash', 't', 'target']

@@ -1,0 +1,4 @@
+# file: C:\Users\chira\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\psycopg\types\enum.py
+# hypothesis_version: 6.148.2
+
+['E', '_dump_map', '_load_map', 'dict[E, bytes]', 'dict[bytes, E]', 'enum', 'format', 'oid', 'replace', 'type[E]']
