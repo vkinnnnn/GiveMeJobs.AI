@@ -1,11 +1,79 @@
 {
-  "mcpServers": {
-    "fetch": {
-      "command": "uvx",
-      "args": ["mcp-server-fetch"],
-      "env": {},
-      "disabled": true,
-      "autoApprove": []
-    }
-  }
+    "mcpServers":  {
+                       "fetch":  {
+                                     "command":  "uvx",
+                                     "args":  [
+                                                  "mcp-server-fetch"
+                                              ],
+                                     "disabled":  false,
+                                     "autoApprove":  [
+                                                         "fetch"
+                                                     ]
+                                 },
+                       "memory":  {
+                                      "command":  "npx",
+                                      "args":  [
+                                                   "-y",
+                                                   "@modelcontextprotocol/server-memory"
+                                               ],
+                                      "disabled":  false,
+                                      "autoApprove":  [
+                                                          "create_entities",
+                                                          "create_relations",
+                                                          "search_nodes",
+                                                          "open_nodes",
+                                                          "read_graph"
+                                                      ]
+                                  },
+                       "github":  {
+                                      "command":  "npx",
+                                      "args":  [
+                                                   "-y",
+                                                   "@modelcontextprotocol/server-github"
+                                               ],
+                                      "env":  {
+                                                  "GITHUB_PERSONAL_ACCESS_TOKEN":  "${GITHUB_PERSONAL_ACCESS_TOKEN}"
+                                              },
+                                      "disabled":  false,
+                                      "autoApprove":  [
+                                                          "search_repositories",
+                                                          "get_file_contents",
+                                                          "create_or_update_file",
+                                                          "push_files",
+                                                          "create_issue"
+                                                      ]
+                                  },
+                       "git":  {
+                                   "command":  "uvx",
+                                   "args":  [
+                                                "mcp-server-git",
+                                                "--repository",
+                                                "C:\\Users\\chira\\.kiro"
+                                            ],
+                                   "disabled":  false,
+                                   "autoApprove":  [
+                                                       "git_status",
+                                                       "git_diff_unstaged",
+                                                       "git_diff_staged",
+                                                       "git_commit",
+                                                       "git_add",
+                                                       "git_log"
+                                                   ]
+                               },
+                       "brave-search":  {
+                                            "args":  [
+                                                         "-y",
+                                                         "@modelcontextprotocol/server-brave-search"
+                                                     ],
+                                            "env":  {
+                                                        "BRAVE_API_KEY":  "${BRAVE_API_KEY}"
+                                                    },
+                                            "command":  "npx",
+                                            "autoApprove":  [
+                                                                "brave_web_search",
+                                                                "brave_local_search"
+                                                            ],
+                                            "disabled":  false
+                                        }
+                   }
 }

@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased] - 2025-11-21
+
+### 🔒 Security
+- **Snyk MCP Integration**: Added Snyk Model Context Protocol server for automated security scanning
+  - Configured Snyk CLI v1.1301.0
+  - Auto-approved security scanning tools: `snyk_code_scan`, `snyk_test`, `snyk_iac_test`, `snyk_container_test`
+  - Created security steering file with "Secure at Inception" guidelines
+  - Documentation: `SNYK_MCP_SETUP.md` and `test-snyk-mcp.md`
+
+### 📝 Documentation
+- Added comprehensive Snyk MCP setup guide
+- Created security best practices steering document
+- Added test documentation for Snyk integration verification
+
+---
+
 ## [2.0.0] - 2025-11-05 - Python-Centric Migration 🎉
 
 ### ⚠️ BREAKING CHANGES

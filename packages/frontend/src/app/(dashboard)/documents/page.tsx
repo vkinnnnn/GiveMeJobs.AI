@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useDocumentsStore, DocumentType } from '@/stores/documents.store';
+import { useDocumentsStore, DocumentType, getDocumentId } from '@/stores/documents.store';
 import { useAuthStore } from '@/stores/auth.store';
 
 export default function DocumentsPage() {
@@ -172,9 +172,11 @@ export default function DocumentsPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredDocuments.map((doc) => (
+          {filteredDocuments.map((doc) => {
+            const docId = getDocumentId(doc);
+            return (
             <div
-              key={doc.id}
+              key={docId}
               className="bg-white shadow rounded-lg p-6 hover:shadow-lg transition-shadow"
             >
               {/* Document Icon and Type */}
@@ -251,19 +253,19 @@ export default function DocumentsPage() {
               {/* Actions */}
               <div className="flex gap-2">
                 <button
-                  onClick={() => router.push(`/documents/edit/${doc.id}`)}
+                  onClick={() => router.push(`/documents/edit/${docId}`)}
                   className="flex-1 px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                 >
                   Edit
                 </button>
                 <button
-                  onClick={() => router.push(`/documents/export/${doc.id}`)}
+                  onClick={() => router.push(`/documents/export/${docId}`)}
                   className="px-3 py-2 text-sm border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
                 >
                   Export
                 </button>
                 <button
-                  onClick={() => setShowDeleteConfirm(doc.id)}
+                  onClick={() => setShowDeleteConfirm(docId)}
                   className="px-3 py-2 text-sm border border-red-300 text-red-700 rounded-lg hover:bg-red-50"
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -277,7 +279,8 @@ export default function DocumentsPage() {
                 </button>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
 

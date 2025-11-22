@@ -67,7 +67,13 @@ export default function GenerateDocumentPage() {
         document = await generateCoverLetter(request);
       }
 
-      router.push(`/documents/edit/${document.id}`);
+      // Handle both id and _id from MongoDB
+      const documentId = document.id || document._id;
+      if (documentId) {
+        router.push(`/documents/edit/${documentId}`);
+      } else {
+        throw new Error('Document ID not found in response');
+      }
     } catch (error) {
       console.error('Failed to generate document:', error);
       alert('Failed to generate document. Please try again.');

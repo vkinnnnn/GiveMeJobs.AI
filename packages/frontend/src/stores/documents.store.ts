@@ -6,6 +6,13 @@ export enum DocumentType {
   COVER_LETTER = 'cover-letter',
 }
 
+/**
+ * Helper function to get document ID (handles both id and _id)
+ */
+export const getDocumentId = (doc: GeneratedDocument): string => {
+  return doc.id || doc._id || '';
+};
+
 export interface DocumentTemplate {
   id: string;
   name: string;
@@ -15,7 +22,8 @@ export interface DocumentTemplate {
 }
 
 export interface GeneratedDocument {
-  id: string;
+  id?: string;
+  _id?: string;
   userId: string;
   jobId: string;
   documentType: DocumentType;
@@ -82,8 +90,12 @@ export const useDocumentsStore = create<DocumentsState>((set) => ({
   generateResume: async (request: DocumentGenerationRequest) => {
     set({ isGenerating: true });
     try {
-      const response = await apiClient.post('/api/documents/resume/generate', request);
-      const document = response.data;
+      const response = await apiClient.post('/api/documents/generate/resume', {
+        jobId: request.jobId,
+        templateId: request.templateId,
+        customizations: request.customizations,
+      });
+      const document = response.data.data || response.data; // Handle both response formats
       
       set((state) => ({
         documents: [document, ...state.documents],
@@ -101,8 +113,12 @@ export const useDocumentsStore = create<DocumentsState>((set) => ({
   generateCoverLetter: async (request: DocumentGenerationRequest) => {
     set({ isGenerating: true });
     try {
-      const response = await apiClient.post('/api/documents/cover-letter/generate', request);
-      const document = response.data;
+      const response = await apiClient.post('/api/documents/generate/cover-letter', {
+        jobId: request.jobId,
+        templateId: request.templateId,
+        customizations: request.customizations,
+      });
+      const document = response.data.data || response.data; // Handle both response formats
       
       set((state) => ({
         documents: [document, ...state.documents],
@@ -120,9 +136,12 @@ export const useDocumentsStore = create<DocumentsState>((set) => ({
   getDocuments: async (userId: string) => {
     set({ isLoading: true });
     try {
-      const response = await apiClient.get(`/api/documents/user/${userId}`);
+      const response = await apiClient.get('/api/documents', {
+        params: { userId },
+      });
+      const documents = response.data.data || response.data; // Handle both response formats
       set({
-        documents: response.data,
+        documents: Array.isArray(documents) ? documents : [],
         isLoading: false,
       });
     } catch (error) {
@@ -135,8 +154,9 @@ export const useDocumentsStore = create<DocumentsState>((set) => ({
     set({ isLoading: true });
     try {
       const response = await apiClient.get(`/api/documents/${id}`);
+      const document = response.data.data || response.data; // Handle both response formats
       set({
-        currentDocument: response.data,
+        currentDocument: document,
         isLoading: false,
       });
     } catch (error) {
@@ -149,10 +169,11 @@ export const useDocumentsStore = create<DocumentsState>((set) => ({
     set({ isLoading: true });
     try {
       const response = await apiClient.put(`/api/documents/${id}`, { content });
+      const document = response.data.data || response.data; // Handle both response formats
       set((state) => ({
-        currentDocument: response.data,
+        currentDocument: document,
         documents: state.documents.map((doc) =>
-          doc.id === id ? response.data : doc
+          doc.id === id || doc._id === id ? document : doc
         ),
         isLoading: false,
       }));
@@ -167,8 +188,8 @@ export const useDocumentsStore = create<DocumentsState>((set) => ({
     try {
       await apiClient.delete(`/api/documents/${id}`);
       set((state) => ({
-        documents: state.documents.filter((doc) => doc.id !== id),
-        currentDocument: state.currentDocument?.id === id ? null : state.currentDocument,
+        documents: state.documents.filter((doc) => doc.id !== id && doc._id !== id),
+        currentDocument: (state.currentDocument?.id === id || state.currentDocument?._id === id) ? null : state.currentDocument,
         isLoading: false,
       }));
     } catch (error) {
@@ -178,10 +199,12 @@ export const useDocumentsStore = create<DocumentsState>((set) => ({
   },
 
   exportDocument: async (id: string, format: 'pdf' | 'docx' | 'txt') => {
-    const response = await apiClient.post(
+    const response = await apiClient.get(
       `/api/documents/${id}/export`,
-      { format },
-      { responseType: 'blob' }
+      { 
+        params: { format },
+        responseType: 'blob' 
+      }
     );
     return response.data;
   },
@@ -189,9 +212,10 @@ export const useDocumentsStore = create<DocumentsState>((set) => ({
   getTemplates: async () => {
     set({ isLoading: true });
     try {
-      const response = await apiClient.get('/api/documents/templates');
+      const response = await apiClient.get('/api/templates/resume');
+      const templates = response.data.data || response.data; // Handle both response formats
       set({
-        templates: response.data,
+        templates: Array.isArray(templates) ? templates : [],
         isLoading: false,
       });
     } catch (error) {
@@ -201,7 +225,7 @@ export const useDocumentsStore = create<DocumentsState>((set) => ({
   },
 
   getTemplateById: async (id: string) => {
-    const response = await apiClient.get(`/api/documents/templates/${id}`);
-    return response.data;
+    const response = await apiClient.get(`/api/templates/resume/${id}`);
+    return response.data.data || response.data; // Handle both response formats
   },
 }));

@@ -176,12 +176,18 @@ phonenumbers==8.13.52          # Phone number parsing and validation (latest)
 validators==0.34.0             # Data validators (latest)
 python-magic==0.4.27           # File type detection (stable)
 pydantic-extra-types==2.10.1   # Extra Pydantic types (latest)
+jsonschema==4.23.0             # JSON Schema validation (latest)
 
 # ============================================================================
 # RATE LIMITING & THROTTLING
 # ============================================================================
 slowapi==0.1.9                 # Rate limiting for FastAPI (stable)
 limits==3.13.2                 # Rate limiting utilities (latest)
+
+# ============================================================================
+# DOCKER & CONTAINER MANAGEMENT
+# ============================================================================
+docker==7.1.0                  # Docker SDK for Python (latest)
 
 # ============================================================================
 # BLOCKCHAIN & WEB3

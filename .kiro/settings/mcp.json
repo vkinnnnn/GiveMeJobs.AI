@@ -2,30 +2,171 @@
   "mcpServers": {
     "fetch": {
       "command": "uvx",
-      "args": ["mcp-server-fetch"],
+      "args": [
+        "mcp-server-fetch"
+      ],
       "disabled": false,
-      "autoApprove": ["fetch"]
+      "autoApprove": [
+        "fetch"
+      ]
     },
     "memory": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-memory"],
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-memory"
+      ],
       "disabled": false,
-      "autoApprove": ["create_entities", "create_relations", "search_nodes", "open_nodes", "read_graph"]
+      "autoApprove": [
+        "create_entities",
+        "create_relations",
+        "search_nodes",
+        "open_nodes",
+        "read_graph"
+      ]
     },
     "github": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-github"
+      ],
       "env": {
         "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}"
       },
       "disabled": false,
-      "autoApprove": ["search_repositories", "get_file_contents", "create_or_update_file", "push_files", "create_issue"]
+      "autoApprove": [
+        "search_repositories",
+        "get_file_contents",
+        "create_or_update_file",
+        "push_files",
+        "create_issue"
+      ]
     },
     "git": {
       "command": "uvx",
-      "args": ["mcp-server-git", "--repository", "C:\\Users\\chira\\.kiro"],
+      "args": [
+        "mcp-server-git",
+        "--repository",
+        "C:\\Users\\chira\\.kiro"
+      ],
       "disabled": false,
-      "autoApprove": ["git_status", "git_diff_unstaged", "git_diff_staged", "git_commit", "git_add", "git_log"]
+      "autoApprove": [
+        "git_status",
+        "git_diff_unstaged",
+        "git_diff_staged",
+        "git_commit",
+        "git_add",
+        "git_log"
+      ]
+    },
+    "brave-search": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-brave-search"
+      ],
+      "env": {
+        "BRAVE_API_KEY": "${BRAVE_API_KEY}"
+      },
+      "disabled": false,
+      "autoApprove": [
+        "brave_web_search",
+        "brave_local_search"
+      ]
+    },
+    "snyk": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "snyk@latest",
+        "mcp",
+        "-t",
+        "stdio"
+      ],
+      "env": {},
+      "disabled": false,
+      "autoApprove": [
+        "snyk_code_scan",
+        "snyk_test",
+        "snyk_iac_test",
+        "snyk_container_test"
+      ]
+    },
+    "ssh": {
+      "command": "python",
+      "args": [
+        "C:\\Users\\chira\\.kiro\\ssh_mcp_server.py"
+      ],
+      "disabled": false,
+      "autoApprove": [
+        "ssh_exec",
+        "ssh_upload",
+        "ssh_download",
+        "ssh_list_files",
+        "ssh_test_connection"
+      ]
+    },
+    "perplexity": {
+      "command": "python",
+      "args": [
+        "perplexity_mcp_server.py"
+      ],
+      "env": {
+        "PERPLEXITY_API_KEY": "${PERPLEXITY_API_KEY}"
+      },
+      "disabled": false,
+      "autoApprove": [
+        "perplexity_search",
+        "perplexity_chat"
+      ]
+    },
+    "database": {
+      "command": "python",
+      "args": [
+        "packages\\python-services\\src\\mcp_servers\\database_mcp.py"
+      ],
+      "env": {
+        "DATABASE_URL": "${DATABASE_URL}",
+        "MONGODB_URL": "${MONGODB_URL}",
+        "REDIS_URL": "${REDIS_URL}"
+      },
+      "disabled": false,
+      "autoApprove": [
+        "db_query",
+        "db_schema",
+        "db_analyze"
+      ]
+    },
+    "docker": {
+      "command": "python",
+      "args": [
+        "packages\\python-services\\src\\mcp_servers\\docker_mcp.py"
+      ],
+      "env": {
+        "DOCKER_HOST": "${DOCKER_HOST}"
+      },
+      "disabled": false,
+      "autoApprove": [
+        "docker_ps",
+        "docker_logs",
+        "docker_stats"
+      ]
+    },
+    "api_testing": {
+      "command": "python",
+      "args": [
+        "packages\\python-services\\src\\mcp_servers\\api_testing_mcp.py"
+      ],
+      "env": {
+        "API_BASE_URL": "${API_BASE_URL}",
+        "API_KEY": "${API_KEY}"
+      },
+      "disabled": false,
+      "autoApprove": [
+        "http_request",
+        "validate_response"
+      ]
     }
   }
 }
